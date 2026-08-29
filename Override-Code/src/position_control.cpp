@@ -16,7 +16,7 @@ constexpr double PositionTolerance = 1.0; // the motor is considered "at target"
 constexpr double ClawPositionTolerance = 1;
 constexpr double ClawMinRelativeAngle = -90.0; // wrist's allowed mechanical range relative to the arm
 constexpr double ClawMaxRelativeAngle = 90.0;
-constexpr double FlipMarginDegrees = 5.0;
+constexpr double FlipHysteresisDegrees = 10.0;
 constexpr double Kp = 18.0;
 constexpr double Ki = 0.0;
 constexpr double Kd = 4;
@@ -68,11 +68,11 @@ double desired_global_angle = DesiredGlobalAngleDegrees;
 double arm_zero_offset = ArmZeroOffsetDegrees;
 double claw_zero_offset = ClawZeroOffsetDegrees;
 ClawMode claw_mode = ClawMode::NORMAL;
-ClawMode flip_destination = ClawMode::FLIPPED;
 double claw_integral = 0.0;
 double claw_previous_error = 0.0;
 double claw_previous_output = 0.0;
 bool claw_was_enabled = false;
+bool claw_flipped = false;
 
 std::size_t index_for(MotorId motor) {
     return static_cast<std::size_t>(motor);
@@ -97,16 +97,12 @@ bool reachable(double target) {
 }
 
 bool safely_reachable(double target) {
-    return target >= ClawMinRelativeAngle + FlipMarginDegrees &&
-           target <= ClawMaxRelativeAngle - FlipMarginDegrees;
+    return target >= ClawMinRelativeAngle + FlipHysteresisDegrees / 2.0 &&
+           target <= ClawMaxRelativeAngle - FlipHysteresisDegrees / 2.0;
 }
 
-ClawMode opposite(ClawMode mode) {
-    return mode == ClawMode::NORMAL ? ClawMode::FLIPPED : ClawMode::NORMAL;
-}
-
-double target_for_mode(double arm_angle, ClawMode mode) {
-    const double mode_offset = mode == ClawMode::FLIPPED ? 180.0 : 0.0;
+double target_for_mode(double arm_angle, bool flipped) {
+    const double mode_offset = flipped ? 180.0 : 0.0;
     return normalize_angle(desired_global_angle + mode_offset - arm_angle);
 }
 
@@ -179,45 +175,28 @@ void updateClawCompensationUnlocked() {
 
     const double arm_angle = getArmAngle();
     if (!claw_was_enabled) {
-        const double normal_target = target_for_mode(arm_angle, ClawMode::NORMAL);
-        claw_mode = reachable(normal_target) ? ClawMode::NORMAL : ClawMode::FLIPPED;
+        const double normal_target = target_for_mode(arm_angle, false);
+        const double flipped_target = target_for_mode(arm_angle, true);
+        claw_flipped = !reachable(normal_target) && reachable(flipped_target);
         claw_was_enabled = true;
         claw_integral = 0.0;
         claw_previous_error = 0.0;
         claw_previous_output = 0.0;
     }
 
-    if (claw_mode == ClawMode::NORMAL || claw_mode == ClawMode::FLIPPED) {
-        const double current_target = target_for_mode(arm_angle, claw_mode);
-        const ClawMode other_mode = opposite(claw_mode);
-        const double other_target = target_for_mode(arm_angle, other_mode);
-        if (!reachable(current_target) && safely_reachable(other_target)) {
-            // The destination has a 5-degree safety margin. On the way back,
-            // the opposite mode must also be 5 degrees inside its limit. This
-            // creates a 10-degree arm hysteresis band around the transition.
-            flip_destination = other_mode;
-            claw_mode = ClawMode::FLIPPING;
-            claw_integral = 0.0;
-            claw_previous_error = 0.0;
-        } else {
-            clawPIDUnlocked(current_target);
-            return;
-        }
+    const double normal_target = target_for_mode(arm_angle, false);
+    const double flipped_target = target_for_mode(arm_angle, true);
+    if (!claw_flipped && !safely_reachable(normal_target) &&
+        safely_reachable(flipped_target)) {
+        claw_flipped = true;
+    } else if (claw_flipped && !safely_reachable(flipped_target) &&
+               safely_reachable(normal_target)) {
+        claw_flipped = false;
     }
 
-    const double flip_target = target_for_mode(arm_angle, flip_destination);
-    if (reachable(flip_target)) {
-        clawPIDUnlocked(flip_target);
-        const double error = flip_target - (Wrist.get_position() - claw_zero_offset);
-        if (std::abs(error) <= ClawPositionTolerance) {
-            claw_mode = flip_destination;
-            claw_integral = 0.0;
-            claw_previous_error = error;
-        }
-    } else {
-        // If the arm moves during the flip, remain inside the physical range.
-        clawPIDUnlocked(std::clamp(flip_target, ClawMinRelativeAngle, ClawMaxRelativeAngle));
-    }
+    const double target = target_for_mode(arm_angle, claw_flipped);
+    claw_mode = claw_flipped ? ClawMode::FLIPPED : ClawMode::NORMAL;
+    clawPIDUnlocked(std::clamp(target, ClawMinRelativeAngle, ClawMaxRelativeAngle));
 }
 
 void control_loop() {
