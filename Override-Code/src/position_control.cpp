@@ -27,7 +27,9 @@ constexpr double ClawKd = 6;
 constexpr double ClawMaxVoltageStep = 1200.0;
 constexpr double ArmReferencePositionDegrees = -1800.0;
 constexpr double ClawReferencePositionDegrees = -34.0;
-constexpr double DesiredGlobalAngleDegrees = 90;
+constexpr double DesiredGlobalAngleDegrees = 90.0;
+constexpr double ArmPositionSign = 1.0;
+constexpr double ClawPositionSign = -1.0;
 
 struct Command {
     CommandId id;
@@ -139,7 +141,8 @@ std::int32_t pid_output(double error, double& integral, double& previous_error,
 void clawPIDUnlocked(double target) {
     // Never command outside the physical relative range, even during a flip.
     target = std::clamp(target, ClawMinRelativeAngle, ClawMaxRelativeAngle);
-    const double claw_angle = Wrist.get_position() - claw_reference_position;
+    const double claw_angle = ClawPositionSign *
+                              (Wrist.get_position() - claw_reference_position);
     const double error = target - claw_angle;
     if (std::abs(error) <= ClawPositionTolerance) {
         Wrist.brake();
@@ -158,7 +161,7 @@ void clawPIDUnlocked(double target) {
                                      claw_previous_output - ClawMaxVoltageStep,
                                      claw_previous_output + ClawMaxVoltageStep);
     claw_previous_output = output;
-    Wrist.move_voltage(static_cast<std::int32_t>(output));
+    Wrist.move_voltage(static_cast<std::int32_t>(ClawPositionSign * output));
 }
 
 void updateClawCompensationUnlocked() {
@@ -274,7 +277,7 @@ Status wait_for(CommandId command, std::uint32_t timeout_ms) {
 }
 
 double getArmAngle() {
-    return Arm.get_position() - arm_reference_position;
+    return ArmPositionSign * (Arm.get_position() - arm_reference_position);
 }
 
 double calculateClawTarget(double arm_angle, double desired_global_angle) {
