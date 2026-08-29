@@ -36,8 +36,8 @@ double nearest_equivalent(double target, double current) {
 
 double wrist_target_for(double arm_position, double desired_claw_angle) {
     const double arm_angle = ArmDirection * (arm_position - ArmZero) / ArmMotorToJointRatio;
-    const double wrist_angle = WristDirection * (desired_claw_angle - arm_angle) / WristMotorToJointRatio;
-    return WristZero + wrist_angle;
+    const double required_wrist_angle = desired_claw_angle - arm_angle;
+    return WristZero + WristDirection * required_wrist_angle * WristMotorToJointRatio;
 }
 
 bool in_wrist_range(double target) {
@@ -88,8 +88,8 @@ void update() {
 }
 
 void start() {
+    running = true;
     if (leveling_task == nullptr) {
-        running = true;
         leveling_task = new pros::Task(update, "Claw Leveling Task");
     }
 }

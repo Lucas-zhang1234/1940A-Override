@@ -91,6 +91,7 @@ void autonomous()
 	Arm.set_zero_position(0);
 	Lift.set_zero_position(0);
 	Wrist.set_zero_position(0);
+	claw_leveling::start();
 	// pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Initial Arm Position: %f", Arm.get_position());
 	// auto start = std::chrono::high_resolution_clock::now();
 	// position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 360, 1200, 2000);
@@ -122,6 +123,7 @@ void autonomous()
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	claw_leveling::start();
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
@@ -173,6 +175,14 @@ void opcontrol() {
 			Lift.brake();
 		}
 
+		const bool wristManualControl =
+			Master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT) ||
+			Master.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT);
+		if (wristManualControl)
+		{
+			claw_leveling::stop();
+			position_control::clear_target(position_control::MotorId::Wrist);
+		}
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
 		{
 			Wrist.move_voltage(6000);
@@ -183,6 +193,7 @@ void opcontrol() {
 		}
 		else
 		{
+			claw_leveling::start();
 			Wrist.brake();
 		}
 

@@ -159,6 +159,22 @@ void start() {
     }
 }
 
+void clear_target(MotorId motor) {
+    if (!valid_motor(motor)) {
+        return;
+    }
+
+    state_mutex.take();
+    MotorState& state = states[index_for(motor)];
+    state.queue.clear();
+    state.has_active = false;
+    state.active_status = Status::Cancelled;
+    state.integral = 0.0;
+    state.previous_error = 0.0;
+    state.motor->brake();
+    state_mutex.give();
+}
+
 void set_target(MotorId motor, double position, std::int32_t max_velocity_rpm,
                 std::uint32_t timeout_ms) {
     if (!valid_motor(motor) || !std::isfinite(position) || max_velocity_rpm <= 0 || timeout_ms == 0) {
