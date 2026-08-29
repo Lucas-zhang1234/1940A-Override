@@ -60,8 +60,8 @@ void ArmWristController::update() {
 
 void ArmWristController::zero() {
     armMotor_.set_zero_position(0);
-    wristStartPhysicalDeg_ = wristMotor_.get_position() / 2.0;
     wristMotor_.set_zero_position(0);
+    wristStartPhysicalDeg_ = 90.0;
 }
 
 void ArmWristController::setArmVoltageMv(int mv) {
@@ -81,7 +81,9 @@ void ArmWristController::setWristVelocityLimit(int pct) {
 }
 
 double ArmWristController::computeWristTarget(double armAngleDeg) {
-    const double targetPhysicalDeg = armAngleDeg + wristStartPhysicalDeg_;
+    const double armScaledDeg = armAngleDeg * (2.0 / 5.0);
+    const double targetPhysicalDeg = wristStartPhysicalDeg_ - armScaledDeg;
+
     if (targetPhysicalDeg > wristMax_) {
         return wristMax_;
     }
