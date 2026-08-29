@@ -2,6 +2,7 @@
 #include "pros/misc.h"
 #include "pros/motors.h"
 #include "pros/rtos.hpp"
+#include "pros/screen.h"
 #include "robot.hpp"
 #include "macros.hpp"
 #include "macro_manager.hpp"
@@ -31,9 +32,6 @@ void on_center_button() {
  */
 void initialize() {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
-
-	pros::lcd::register_btn1_cb(on_center_button);
 
 	// Since the front motors of each side are green:
     Left_MG.set_gearing(pros::MotorGearset::green, 0);
@@ -96,10 +94,8 @@ void autonomous()
  */
 void opcontrol() {
 	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
-
+		pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Arm Position: %f", Arm.get_position());
+		pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist Position: %f", Wrist.get_position());
 		// Arcade control scheme
 		int dir = Master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
 		int turn = Master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
@@ -112,6 +108,7 @@ void opcontrol() {
 			{
 				clearMacros();
 			}
+			pros::delay(20);
 			continue;
 		}
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
