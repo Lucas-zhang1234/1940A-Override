@@ -58,14 +58,14 @@ void macroTask(void* param) {
 
                 case Macro::ONE_PIN:
                     macroRunning = true;
-                    // Implement the logic for ONE_PIN macro here
+                    one_pin_macro();
                     macroRunning = false;
                     macroQueue.pop();
                     break;
 
                 case Macro::TWO_PIN:
                     macroRunning = true;
-                    // Implement the logic for TWO_PIN macro here
+                    two_pin_macro();
                     macroRunning = false;
                     macroQueue.pop();
                     break;

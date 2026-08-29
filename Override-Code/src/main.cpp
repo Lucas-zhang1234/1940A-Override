@@ -207,22 +207,30 @@ void opcontrol() {
 		if (!overrideWristLeveling) Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
 
 		pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", armMotorDegrees);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Wrist Target: %.2f deg", wristTargetDegrees);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist: %.2f deg", Wrist.get_position());
-		pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist Error: %.2f deg", wristError);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 4, "Wrist Output: %.2f mV", wristOutput);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Wrist Voltage: %.2f mV", clampedVoltage);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist Target: %.2f deg", wristTargetDegrees);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist: %.2f deg", Wrist.get_position());
+		pros::screen::print(pros::E_TEXT_MEDIUM,4, "Wrist Error: %.2f deg", wristError);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Wrist Output: %.2f mV", wristOutput);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 6, "Wrist Voltage: %.2f mV", clampedVoltage);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift: %.2f deg", Lift.get_position());
 
 		if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
 		{
 			Wrist.move_voltage(4000);
+			overrideWristLeveling = true;
 		} 
 		else if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
 		{
 			Wrist.move_voltage(-4000);
+			overrideWristLeveling = true;
+		}
+		else if (overrideWristLeveling)
+		{
+			Wrist.brake();
 		}
 
-		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
+		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)
+			|| Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
 		{
 			// macro to move intake back far enough, grab the pin with the claw, and rotate it upright
 			tryAddMacroToQueue(Macro::GRAB_PIN);
@@ -232,6 +240,18 @@ void opcontrol() {
 		{
 			// macro to move intake back far enough, grab the pin with the claw, and rotate it upright
 			tryAddMacroToQueue(Macro::SCORE_POSITION);
+		}
+
+		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)
+			|| Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT))
+		{
+			tryAddMacroToQueue(Macro::TWO_PIN);
+		}
+
+		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)
+			|| Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT))
+		{
+			tryAddMacroToQueue(Macro::ONE_PIN);
 		}
 
 		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1))
