@@ -27,6 +27,7 @@ void start();
 // Maintained automatically by the position-control task every 10 ms.
 // The wrist target is derived from the arm encoder position.
 void update_wrist_parallel();
+void set_arm_manual_input(std::int32_t input);
 
 CommandId move_absolute(MotorId motor, double position, std::int32_t max_velocity_rpm,
                         std::uint32_t timeout_ms);

@@ -108,6 +108,7 @@ void opcontrol() {
 
 		if (isMacroRunning())
 		{
+			position_control::set_arm_manual_input(0);
 			if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_X))
 			{
 				clearMacros();
@@ -142,18 +143,16 @@ void opcontrol() {
 			Lift.brake();
 		}
 
+		int arm_input = 0;
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
 		{
-			Arm.move_voltage(-12000);
-		} 
+			arm_input = -127;
+		}
 		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
 		{
-			Arm.move_voltage(12000);
+			arm_input = 127;
 		}
-		else 
-		{
-			Arm.brake();
-		}
+		position_control::set_arm_manual_input(arm_input);
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
 		{
