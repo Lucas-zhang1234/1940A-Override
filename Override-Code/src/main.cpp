@@ -7,12 +7,16 @@
 #include "macros.hpp"
 #include "macro_manager.hpp"
 #include "position_control.hpp"
+#include "lemlib/pid.hpp"
+#include <algorithm>
 #include <chrono>
 
 namespace {
 constexpr double kArmGearRatio = 5.0;
 constexpr double kWristGearRatio = 2.0;
-constexpr double kWristToArmMotorScale = kWristGearRatio / kArmGearRatio;
+constexpr double kWristTargetScale = kWristGearRatio / kArmGearRatio; // = 0.4, so wrist motor degrees = -(2/5) * arm motor degrees
+
+lemlib::PID WristPID(1.2, 0.0, 0.15, 0.0, false);
 }
 
 /**
@@ -126,7 +130,6 @@ void autonomous()
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	double lastArmPosition = Arm.get_position();
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
@@ -177,21 +180,22 @@ void opcontrol() {
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
 		{
 			Arm.move_voltage(-12000);
-		} 
+		}
 		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
 		{
 			Arm.move_voltage(12000);
 		}
-		else 
+		else
 		{
 			Arm.brake();
 		}
 
-		const double armPosition = Arm.get_position();
-		const double armDelta = armPosition - lastArmPosition;
-		const double wristDelta = -armDelta * kWristToArmMotorScale;
-		Wrist.move_relative(wristDelta, 200);
-		lastArmPosition = armPosition;
+		const double armMotorDegrees = Arm.get_position();
+		const double wristTargetDegrees = -armMotorDegrees * kWristTargetScale;
+		const double wristError = wristTargetDegrees - Wrist.get_position();
+		const double wristOutput = WristPID.update(wristError);
+		const double clampedVoltage = std::clamp(wristOutput, -12000.0, 12000.0);
+		Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
 		{
