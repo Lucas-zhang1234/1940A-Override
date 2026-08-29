@@ -34,15 +34,13 @@ ArmWristController::ArmWristController(pros::Motor& armMotor,
                                        bool armReversed,
                                        bool wristReversed,
                                        int wristVelocity,
-                                       double wristMotorScale,
-                                       double wristMotorOffsetDeg)
+                                       double wristZeroOffsetDeg)
     : armMotor_(armMotor),
       wristMotor_(wristMotor),
       wristMin_(wristMinDeg),
       wristMax_(wristMaxDeg),
       wristVelocity_(wristVelocity),
-      wristMotorScale_(wristMotorScale),
-      wristMotorOffsetDeg_(wristMotorOffsetDeg) {
+      wristZeroOffsetDeg_(wristZeroOffsetDeg) {
     armMotor_.set_reversed(armReversed);
     wristMotor_.set_reversed(wristReversed);
     armMotor_.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -50,7 +48,7 @@ ArmWristController::ArmWristController(pros::Motor& armMotor,
 }
 
 void ArmWristController::update() {
-    const double armPhysicalDeg = armMotor_.get_position() / 5.0;
+    const double armPhysicalDeg = armMotor_.get_position();
     const double targetPhysicalDeg = computeWristTarget(armPhysicalDeg);
     const double targetMotorDeg = convertToMotorDeg(targetPhysicalDeg);
 
@@ -67,7 +65,6 @@ void ArmWristController::update() {
 void ArmWristController::zero() {
     armMotor_.set_zero_position(0);
     wristMotor_.set_zero_position(0);
-    wristStartPhysicalDeg_ = 90.0;
 }
 
 void ArmWristController::setArmVoltageMv(int mv) {
@@ -86,7 +83,7 @@ void ArmWristController::setWristVelocityLimit(int pct) {
     wristVelocity_ = pct;
 }
 
-double ArmWristController::normalizeWristAngleDeg(double deg) {
+double ArmWristController::normalizeSigned90Deg(double deg) {
     while (deg > 90.0) {
         deg -= 180.0;
     }
@@ -97,12 +94,11 @@ double ArmWristController::normalizeWristAngleDeg(double deg) {
 }
 
 double ArmWristController::convertToMotorDeg(double wristPhysicalDeg) const {
-    return wristPhysicalDeg * wristMotorScale_ + wristMotorOffsetDeg_;
+    return wristPhysicalDeg + wristZeroOffsetDeg_;
 }
 
 double ArmWristController::computeWristTarget(double armAngleDeg) {
-    double targetPhysicalDeg = -armAngleDeg;
-    targetPhysicalDeg = normalizeWristAngleDeg(targetPhysicalDeg);
+    double targetPhysicalDeg = normalizeSigned90Deg(-armAngleDeg);
 
     if (targetPhysicalDeg > wristMax_) {
         return wristMax_;
@@ -115,7 +111,7 @@ double ArmWristController::computeWristTarget(double armAngleDeg) {
 
 void start() {
     if (g_controller == nullptr) {
-        g_controller = new ArmWristController(Arm, Wrist, -180.0, 180.0, false, false, 100);
+        g_controller = new ArmWristController(Arm, Wrist, -90.0, 90.0, false, false, 100, 0.0);
     }
 
     if (g_running) {
