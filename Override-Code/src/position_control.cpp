@@ -13,6 +13,9 @@ namespace {
 
 constexpr std::uint32_t LoopPeriodMs = 10;
 constexpr double PositionTolerance = 1.0;
+constexpr double WristFlipLeewayDegrees = 10.0;
+constexpr double WristParallelOffsetDegrees = 0.0;
+constexpr std::int32_t WristParallelMaxVelocityRpm = 600;
 constexpr double Kp = 18.0;
 constexpr double Ki = 0.0;
 constexpr double Kd = 0.8;
@@ -53,6 +56,9 @@ std::size_t command_result_count = 0;
 pros::Mutex state_mutex;
 pros::Task* control_task = nullptr;
 CommandId next_command_id = 1;
+bool wrist_flipped = false;
+double wrist_integral = 0.0;
+double wrist_previous_error = 0.0;
 
 std::size_t index_for(MotorId motor) {
     return static_cast<std::size_t>(motor);
@@ -75,12 +81,53 @@ void finish(MotorState& state, Status status) {
     state.previous_error = 0.0;
 }
 
+void control_wrist_parallel() {
+    const double arm_angle = Arm.get_position();
+    if (!wrist_flipped && arm_angle < -WristFlipLeewayDegrees) {
+        wrist_flipped = true;
+        wrist_integral = 0.0;
+        wrist_previous_error = 0.0;
+    } else if (wrist_flipped && arm_angle > WristFlipLeewayDegrees) {
+        wrist_flipped = false;
+        wrist_integral = 0.0;
+        wrist_previous_error = 0.0;
+    }
+
+    const double target = WristParallelOffsetDegrees - arm_angle +
+                          (wrist_flipped ? 180.0 : 0.0);
+    const double error = target - Wrist.get_position();
+    if (std::abs(error) <= PositionTolerance) {
+        Wrist.brake();
+        wrist_integral = 0.0;
+        wrist_previous_error = error;
+        return;
+    }
+
+    wrist_integral = std::clamp(wrist_integral + error * (LoopPeriodMs / 1000.0),
+                                -IntegralLimit, IntegralLimit);
+    const double derivative = (error - wrist_previous_error) / (LoopPeriodMs / 1000.0);
+    wrist_previous_error = error;
+    const double velocity_limit = std::clamp(
+        static_cast<double>(WristParallelMaxVelocityRpm) / 600.0, 0.05, 1.0);
+    const double output = std::clamp(
+        (Kp * error) + (Ki * wrist_integral) + (Kd * derivative),
+        -MaxVoltage * velocity_limit, MaxVoltage * velocity_limit);
+    Wrist.move_voltage(static_cast<std::int32_t>(output));
+}
+
 void control_loop() {
     while (true) {
         const std::uint32_t now = pros::millis();
         state_mutex.take();
+        bool wrist_command_active = false;
 
         for (MotorState& state : states) {
+            if (state.motor == &Wrist && (state.has_active || !state.queue.empty())) {
+                wrist_command_active = true;
+            }
+            if (state.motor == &Wrist && !wrist_command_active) {
+                continue;
+            }
             if (!state.has_active) {
                 if (state.queue.empty()) {
                     continue;
@@ -115,6 +162,10 @@ void control_loop() {
                 (Kp * error) + (Ki * state.integral) + (Kd * derivative),
                 -MaxVoltage * velocity_limit, MaxVoltage * velocity_limit);
             state.motor->move_voltage(static_cast<std::int32_t>(output));
+        }
+
+        if (!wrist_command_active) {
+            control_wrist_parallel();
         }
 
         state_mutex.give();
@@ -156,6 +207,12 @@ void start() {
     if (control_task == nullptr) {
         control_task = new pros::Task(control_loop, "Position Control Task");
     }
+}
+
+void update_wrist_parallel() {
+    state_mutex.take();
+    control_wrist_parallel();
+    state_mutex.give();
 }
 
 CommandId move_absolute(MotorId motor, double position, std::int32_t max_velocity_rpm,
