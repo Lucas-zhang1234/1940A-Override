@@ -23,9 +23,9 @@ pros::Imu IMU(15);
 
 #pragma region Odometry
 
-pros::Rotation Vertical_Rot(6);
+pros::Rotation Vertical_Rot(-6);
 pros::Rotation Right_Horizontal_Rot(8);
-pros::Rotation Left_Horizontal_Rot(2);
+pros::Rotation Left_Horizontal_Rot(-2);
 
 lemlib::TrackingWheel Vertical_TW(&Vertical_Rot, lemlib::Omniwheel::NEW_2, 0.75);
 lemlib::TrackingWheel Right_Horizontal_TW(&Right_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.9);
@@ -43,33 +43,33 @@ lemlib::OdomSensors Sensors(&Vertical_TW, // vertical tracking wheel 1
 #pragma region Controllers
 
 // lateral PID controller
-lemlib::ControllerSettings Lateral_Controller(10, // proportional gain (kP)
+lemlib::ControllerSettings Lateral_Controller(1.5472, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              55, // derivative gain (kD)
-                                              0.9, // anti windup
+                                              10, // derivative gain (kD)
+                                              0.9, // anti windup (0.9)
                                               1, // small error range, in inches
                                               100, // small error range timeout, in milliseconds
                                               3, // large error range, in inches
-                                              300, // large error range timeout, in milliseconds
-                                              10 // maximum acceleration (slew) - smooths out sudden lurches
+                                              200, // large error range timeout, in milliseconds
+                                              0 // maximum acceleration (slew) - smooths out sudden lurches (10)
 );
 
 // angular PID controller
-lemlib::ControllerSettings Angular_Controller(2.3, // proportional gain (kP)
+lemlib::ControllerSettings Angular_Controller(6, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              15, // derivative gain (kD)
+                                              3.2, // derivative gain (kD)
                                               0, // anti windup
-                                              1, // small error range, in degrees
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in degrees
-                                              200, // large error range timeout, in milliseconds
-                                              20 // maximum acceleration (slew)
+                                              1, // small error range, in degrees (1)
+                                              100, // small error range timeout, in milliseconds (100)
+                                              3, // large error range, in degrees (3)
+                                              200, // large error range timeout, in milliseconds (200)
+                                              0 // maximum acceleration (slew) (20)
 );
 
 #pragma endregion Controllers
 
 // create the chassis
-lemlib::Chassis Chassis(Drivetrain, // drivetrain settings
+lemlib::Chassis chassis(Drivetrain, // drivetrain settings
                         Lateral_Controller, // lateral PID settings
                         Angular_Controller, // angular PID settings
                         Sensors // odometry sensors

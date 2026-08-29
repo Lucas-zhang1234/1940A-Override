@@ -31,13 +31,17 @@ void score_position_macro()
 
 void one_pin_macro()
 {
-    position_control::move_absolute_degrees(position_control::MotorId::Arm, -87.2, 600, 1000);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, -1028, 600, 1000);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Wrist, 66, 400, 2000);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, -1028, 600, 2000);
+    position_control::move_absolute_degrees(position_control::MotorId::Arm, -87.2, 600, 2000);
+    // position_control::move_absolute_degrees_blocking(position_control::MotorId::Wrist, 100, 600, 2000);
+    Wrist.move_absolute(250, 600);
+    pros::delay(500);
 }
 
 void two_pin_macro()
 {
-    position_control::move_absolute_degrees(position_control::MotorId::Arm, 180, 600, 1000);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 70, 200, 1000);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 146.4, 600, 2000);
+    position_control::move_absolute_degrees(position_control::MotorId::Arm, 620.8, 600, 2000);
+    Wrist.move_absolute(-18, 600);
+    pros::delay(700);
 }

@@ -39,7 +39,7 @@ extern lemlib::ControllerSettings Angular_Controller;
 #pragma endregion Controllers
 
 // create the chassis
-extern lemlib::Chassis Chassis;
+extern lemlib::Chassis chassis;
 
 #pragma region Scoring
 

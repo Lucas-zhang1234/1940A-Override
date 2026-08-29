@@ -10,7 +10,9 @@
 #include "macro_manager.hpp"
 #include "position_control.hpp"
 #include "lemlib/pid.hpp"
+#include "skills_auton.hpp"
 #include <algorithm>
+#include "pid_tuning.hpp"
 #include <chrono>
 
 namespace {
@@ -45,6 +47,8 @@ void on_center_button() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+	IMU.reset(true);
+
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User!");
 
@@ -99,24 +103,39 @@ void competition_initialize() {}
  */
 void autonomous() 
 {
-	Arm.set_zero_position(0);
-	Lift.set_zero_position(0);
-	Wrist.set_zero_position(0);
-	// pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Initial Arm Position: %f", Arm.get_position());
+	// Arm.set_zero_position(0);
+	// Lift.set_zero_position(0);
+	// Wrist.set_zero_position(0);
+	// // pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Initial Arm Position: %f", Arm.get_position());
+	// // auto start = std::chrono::high_resolution_clock::now();
+	// // position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 360, 1200, 2000);
+	// // auto end = std::chrono::high_resolution_clock::now();
+	// // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	// // pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Final Arm Position: %f", Arm.get_position());
+	// // pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Duration: %lld ms", duration.count());
+	// Fingers.retract();
+	// pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Initial Lift Position: %f", Lift.get_position());
 	// auto start = std::chrono::high_resolution_clock::now();
-	// position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 360, 1200, 2000);
+	// position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 180, 300, 2000);
 	// auto end = std::chrono::high_resolution_clock::now();
 	// auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	// pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Final Arm Position: %f", Arm.get_position());
+	// pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Final Lift Position: %f", Lift.get_position());
 	// pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Duration: %lld ms", duration.count());
-	Fingers.retract();
-	pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Initial Lift Position: %f", Lift.get_position());
-	auto start = std::chrono::high_resolution_clock::now();
-	position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 180, 300, 2000);
-	auto end = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Final Lift Position: %f", Lift.get_position());
-	pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Duration: %lld ms", duration.count());
+
+	double firstY = -6.784;
+    double firstX = -54;
+    chassis.setPose(-64.188, firstY, 270);
+
+    chassis.moveToPoint(firstX, firstY, 2000, {.forwards=false});
+    chassis.moveToPoint(-71, firstY, 1300);
+    chassis.moveToPoint(firstX-2, firstY, 2000, {.forwards=false});
+    chassis.moveToPoint(-71, firstY, 1300);
+
+    chassis.moveToPoint(-48, firstY, 2000, {.forwards=false});
+    chassis.turnToHeading(0, 1000);
+
+    chassis.moveToPoint(-48, -18.377, 1000, {.forwards=false});
+	// turn();
 }
 
 /**
@@ -147,6 +166,7 @@ void opcontrol() {
 
 		if (isMacroRunning())
 		{
+			overrideWristLeveling = true;
 			if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_X))
 			{
 				clearMacros();

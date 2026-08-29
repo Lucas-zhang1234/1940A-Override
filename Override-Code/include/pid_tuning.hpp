@@ -1,1 +1,3 @@
 void turn();
+
+void move();
