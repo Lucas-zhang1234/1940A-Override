@@ -17,7 +17,8 @@ constexpr double kArmGearRatio = 5.0;
 constexpr double kWristGearRatio = 2.0;
 constexpr double kWristTargetScale = kWristGearRatio / kArmGearRatio; // = 0.4, so wrist motor degrees = -(2/5) * arm motor degrees
 
-lemlib::PID WristPID(20, 0.0, 5, 0.0, false);
+// Keep the wrist controller intentionally simple so it tracks a moving arm target in real time.
+lemlib::PID WristPID(6.0, 0.0, 0.0, 0.0, false);
 }
 
 /**
@@ -178,6 +179,8 @@ void opcontrol() {
 			Lift.brake();
 		}
 
+		const bool armCommandActive = Master.get_digital(pros::E_CONTROLLER_DIGITAL_B) ||
+		                             Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
 		{
 			Arm.move_voltage(-12000);
@@ -194,6 +197,9 @@ void opcontrol() {
 		const double armMotorDegrees = Arm.get_position();
 		const double wristTargetDegrees = -armMotorDegrees * kWristTargetScale;
 		const double wristError = wristTargetDegrees - Wrist.get_position();
+		if (!armCommandActive) {
+			WristPID.reset();
+		}
 		const double wristOutput = WristPID.update(wristError);
 		const double clampedVoltage = std::clamp(wristOutput, -12000.0, 12000.0);
 		Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
