@@ -81,7 +81,7 @@ void ArmWristController::setWristVelocityLimit(int pct) {
 }
 
 double ArmWristController::computeWristTarget(double armAngleDeg) {
-    const double targetPhysicalDeg = wristStartPhysicalDeg_ - armAngleDeg;
+    const double targetPhysicalDeg = armAngleDeg + wristStartPhysicalDeg_;
     if (targetPhysicalDeg > wristMax_) {
         return wristMax_;
     }
