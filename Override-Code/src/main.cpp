@@ -9,6 +9,12 @@
 #include "position_control.hpp"
 #include <chrono>
 
+namespace {
+constexpr double kArmGearRatio = 5.0;
+constexpr double kWristGearRatio = 2.0;
+constexpr double kWristToArmMotorScale = kWristGearRatio / kArmGearRatio;
+}
+
 /**
  * A callback function for LLEMU's center button.
  *
@@ -120,6 +126,7 @@ void autonomous()
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	double lastArmPosition = Arm.get_position();
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
@@ -179,6 +186,12 @@ void opcontrol() {
 		{
 			Arm.brake();
 		}
+
+		const double armPosition = Arm.get_position();
+		const double armDelta = armPosition - lastArmPosition;
+		const double wristDelta = -armDelta * kWristToArmMotorScale;
+		Wrist.move_relative(wristDelta, 200);
+		lastArmPosition = armPosition;
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
 		{
