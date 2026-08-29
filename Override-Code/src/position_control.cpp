@@ -25,8 +25,8 @@ constexpr double MaxVoltage = 12000.0;
 constexpr double ClawKp = 80.0;
 constexpr double ClawKd = 6;
 constexpr double ClawMaxVoltageStep = 1200.0;
-constexpr double ArmZeroOffsetDegrees = 1800;
-constexpr double ClawZeroOffsetDegrees = -43;
+constexpr double ArmReferencePositionDegrees = -1800.0;
+constexpr double ClawReferencePositionDegrees = -34.0;
 constexpr double DesiredGlobalAngleDegrees = 90;
 
 struct Command {
@@ -65,8 +65,8 @@ pros::Task* control_task = nullptr;
 CommandId next_command_id = 1;
 
 double desired_global_angle = DesiredGlobalAngleDegrees;
-double arm_zero_offset = ArmZeroOffsetDegrees;
-double claw_zero_offset = ClawZeroOffsetDegrees;
+double arm_reference_position = ArmReferencePositionDegrees;
+double claw_reference_position = ClawReferencePositionDegrees;
 ClawMode claw_mode = ClawMode::NORMAL;
 double claw_integral = 0.0;
 double claw_previous_error = 0.0;
@@ -139,7 +139,7 @@ std::int32_t pid_output(double error, double& integral, double& previous_error,
 void clawPIDUnlocked(double target) {
     // Never command outside the physical relative range, even during a flip.
     target = std::clamp(target, ClawMinRelativeAngle, ClawMaxRelativeAngle);
-    const double claw_angle = Wrist.get_position() - claw_zero_offset;
+    const double claw_angle = Wrist.get_position() - claw_reference_position;
     const double error = target - claw_angle;
     if (std::abs(error) <= ClawPositionTolerance) {
         Wrist.brake();
@@ -274,7 +274,7 @@ Status wait_for(CommandId command, std::uint32_t timeout_ms) {
 }
 
 double getArmAngle() {
-    return Arm.get_position() - arm_zero_offset;
+    return Arm.get_position() - arm_reference_position;
 }
 
 double calculateClawTarget(double arm_angle, double desired_global_angle) {
@@ -301,13 +301,13 @@ void setDesiredGlobalAngle(double angle) {
 
 void setArmZeroOffset(double offset) {
     state_mutex.take();
-    arm_zero_offset = offset;
+    arm_reference_position = offset;
     state_mutex.give();
 }
 
 void setClawZeroOffset(double offset) {
     state_mutex.take();
-    claw_zero_offset = offset;
+    claw_reference_position = offset;
     state_mutex.give();
 }
 
