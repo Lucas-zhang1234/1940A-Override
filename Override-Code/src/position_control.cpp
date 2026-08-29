@@ -25,8 +25,8 @@ constexpr double MaxVoltage = 12000.0;
 constexpr double ClawKp = 80.0;
 constexpr double ClawKd = 6;
 constexpr double ClawMaxVoltageStep = 1200.0;
-constexpr double ArmZeroOffsetDegrees = 1921;
-constexpr double ClawZeroOffsetDegrees = -100;
+constexpr double ArmZeroOffsetDegrees = 1800;
+constexpr double ClawZeroOffsetDegrees = -43;
 constexpr double DesiredGlobalAngleDegrees = 90;
 
 struct Command {
