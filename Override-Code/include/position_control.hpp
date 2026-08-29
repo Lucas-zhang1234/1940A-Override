@@ -24,6 +24,9 @@ using CommandId = std::uint32_t;
 
 void start();
 
+void set_target(MotorId motor, double position, std::int32_t max_velocity_rpm,
+                std::uint32_t timeout_ms);
+
 CommandId move_absolute(MotorId motor, double position, std::int32_t max_velocity_rpm,
                         std::uint32_t timeout_ms);
 CommandId move_relative(MotorId motor, double delta, std::int32_t max_velocity_rpm,

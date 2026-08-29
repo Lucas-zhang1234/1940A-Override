@@ -2,6 +2,7 @@
 #include "helpers.hpp"
 #include "macros.hpp"
 #include "position_control.hpp"
+#include "claw_leveling.hpp"
 
 void grab_pin_macro()
 {
@@ -19,12 +20,13 @@ void grab_pin_macro()
     close_claw();
 
     // Step 5: Lift up pin slightly, and parallel to ground
-
+    claw_leveling::start();
+    position_control::move_relative_degrees_blocking(position_control::MotorId::Lift, 20, 200, 1000);
 }
 
 void score_position_macro()
 {
-    position_control::move_absolute_degrees(position_control::MotorId::Wrist, 0, 400, 2000);
+    claw_leveling::start();
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 10, 600, 2000);
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 0, 200, 2000);
 }

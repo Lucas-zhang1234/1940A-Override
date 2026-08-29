@@ -159,6 +159,31 @@ void start() {
     }
 }
 
+void set_target(MotorId motor, double position, std::int32_t max_velocity_rpm,
+                std::uint32_t timeout_ms) {
+    if (!valid_motor(motor) || !std::isfinite(position) || max_velocity_rpm <= 0 || timeout_ms == 0) {
+        return;
+    }
+
+    start();
+    state_mutex.take();
+    MotorState& state = states[index_for(motor)];
+    state.queue.clear();
+    if (!state.has_active || state.active.id != 0) {
+        state.active = {0, position, max_velocity_rpm, timeout_ms, pros::millis()};
+        state.active_status = Status::Running;
+        state.has_active = true;
+        state.integral = 0.0;
+        state.previous_error = 0.0;
+    } else {
+        state.active.target = position;
+        state.active.max_velocity_rpm = max_velocity_rpm;
+        state.active.timeout_ms = timeout_ms;
+        state.active.started_at = pros::millis();
+    }
+    state_mutex.give();
+}
+
 CommandId move_absolute(MotorId motor, double position, std::int32_t max_velocity_rpm,
                         std::uint32_t timeout_ms) {
     return enqueue(motor, position, max_velocity_rpm, timeout_ms);

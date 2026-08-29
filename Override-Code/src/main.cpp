@@ -7,6 +7,7 @@
 #include "macros.hpp"
 #include "macro_manager.hpp"
 #include "position_control.hpp"
+#include "claw_leveling.hpp"
 #include <chrono>
 
 /**
@@ -52,6 +53,7 @@ void initialize() {
 	
 
 	position_control::start();
+	claw_leveling::start();
 	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");
 }
 
@@ -60,7 +62,7 @@ void initialize() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {}
+void disabled() { claw_leveling::stop(); }
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
