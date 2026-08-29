@@ -146,11 +146,11 @@ void opcontrol() {
 		int arm_input = 0;
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
 		{
-			arm_input = -127;
+			arm_input = -12000;
 		}
 		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
 		{
-			arm_input = 127;
+			arm_input = 12000;
 		}
 		position_control::set_arm_manual_input(arm_input);
 

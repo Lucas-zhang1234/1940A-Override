@@ -258,7 +258,7 @@ void set_arm_manual_input(std::int32_t input) {
         arm_state.previous_error = 0.0;
     }
     arm_manual_active = true;
-    arm_manual_input = std::clamp<int>(input, -127, 127);
+    arm_manual_input = std::clamp<int>(input, -12000, 12000);
     state_mutex.give();
 }
 
