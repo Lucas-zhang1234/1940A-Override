@@ -39,6 +39,7 @@ void initialize() {
 
 	Arm.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 	Lift.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
+	Wrist.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 
 	position_control::start();
 	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");

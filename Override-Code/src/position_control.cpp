@@ -13,6 +13,7 @@ namespace {
 
 constexpr std::uint32_t LoopPeriodMs = 10; // how often the loop runs
 constexpr double PositionTolerance = 1.0; // the motor is considered "at target" when it is within 1 degree of the pos
+constexpr double ClawPositionTolerance = 2.5;
 constexpr double ClawMinRelativeAngle = -90.0; // wrist's allowed mechanical range relative to the arm
 constexpr double ClawMaxRelativeAngle = 90.0;
 constexpr double FlipMarginDegrees = 5.0;
@@ -21,7 +22,9 @@ constexpr double Ki = 0.0;
 constexpr double Kd = 0.8;
 constexpr double IntegralLimit = 500.0;
 constexpr double MaxVoltage = 12000.0;
-constexpr double MinimumClawVoltage = 1200.0;
+constexpr double ClawKp = 80.0;
+constexpr double ClawKd = 1.5;
+constexpr double ClawMaxVoltageStep = 1200.0;
 constexpr double ArmZeroOffsetDegrees = 1921;
 constexpr double ClawZeroOffsetDegrees = -100;
 constexpr double DesiredGlobalAngleDegrees = 0.0;
@@ -68,6 +71,7 @@ ClawMode claw_mode = ClawMode::NORMAL;
 ClawMode flip_destination = ClawMode::FLIPPED;
 double claw_integral = 0.0;
 double claw_previous_error = 0.0;
+double claw_previous_output = 0.0;
 bool claw_was_enabled = false;
 
 std::size_t index_for(MotorId motor) {
@@ -133,9 +137,6 @@ std::int32_t pid_output(double error, double& integral, double& previous_error,
     const double output = std::clamp((Kp * error) + (Ki * integral) + (Kd * derivative),
                                      -MaxVoltage * velocity_limit,
                                      MaxVoltage * velocity_limit);
-    if (std::abs(error) > PositionTolerance && std::abs(output) < MinimumClawVoltage) {
-        return static_cast<std::int32_t>(std::copysign(MinimumClawVoltage, error));
-    }
     return static_cast<std::int32_t>(output);
 }
 
@@ -144,13 +145,24 @@ void clawPIDUnlocked(double target) {
     target = std::clamp(target, ClawMinRelativeAngle, ClawMaxRelativeAngle);
     const double claw_angle = Wrist.get_position() - claw_zero_offset;
     const double error = target - claw_angle;
-    if (std::abs(error) <= PositionTolerance) {
+    if (std::abs(error) <= ClawPositionTolerance) {
         Wrist.brake();
         claw_integral = 0.0;
         claw_previous_error = error;
+        claw_previous_output = 0.0;
         return;
     }
-    Wrist.move_voltage(pid_output(error, claw_integral, claw_previous_error, 600.0, 600.0));
+    claw_integral = std::clamp(claw_integral + error * (LoopPeriodMs / 1000.0),
+                               -IntegralLimit, IntegralLimit);
+    const double derivative = (error - claw_previous_error) / (LoopPeriodMs / 1000.0);
+    claw_previous_error = error;
+    const double requested_output = std::clamp(
+        (ClawKp * error) + (ClawKd * derivative), -MaxVoltage, MaxVoltage);
+    const double output = std::clamp(requested_output,
+                                     claw_previous_output - ClawMaxVoltageStep,
+                                     claw_previous_output + ClawMaxVoltageStep);
+    claw_previous_output = output;
+    Wrist.move_voltage(static_cast<std::int32_t>(output));
 }
 
 void updateClawCompensationUnlocked() {
@@ -160,6 +172,7 @@ void updateClawCompensationUnlocked() {
         Wrist.brake();
         claw_integral = 0.0;
         claw_previous_error = 0.0;
+        claw_previous_output = 0.0;
         claw_was_enabled = false;
         return;
     }
@@ -171,6 +184,7 @@ void updateClawCompensationUnlocked() {
         claw_was_enabled = true;
         claw_integral = 0.0;
         claw_previous_error = 0.0;
+        claw_previous_output = 0.0;
     }
 
     if (claw_mode == ClawMode::NORMAL || claw_mode == ClawMode::FLIPPED) {
@@ -195,7 +209,7 @@ void updateClawCompensationUnlocked() {
     if (reachable(flip_target)) {
         clawPIDUnlocked(flip_target);
         const double error = flip_target - (Wrist.get_position() - claw_zero_offset);
-        if (std::abs(error) <= PositionTolerance) {
+        if (std::abs(error) <= ClawPositionTolerance) {
             claw_mode = flip_destination;
             claw_integral = 0.0;
             claw_previous_error = error;
