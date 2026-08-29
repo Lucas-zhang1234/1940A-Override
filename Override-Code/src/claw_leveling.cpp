@@ -9,81 +9,127 @@
 namespace claw_leveling {
 namespace {
 
-constexpr double ArmDirection = 1.0;
-constexpr double WristDirection = 1.0;
-constexpr double ArmMotorToJointRatio = 5.0; // in motor encoder degrees per joint degree
-constexpr double WristMotorToJointRatio = 3.5; // in motor encoder degrees per joint degree
-constexpr double WristMotorToArmMotorRatio =
-    WristMotorToJointRatio / ArmMotorToJointRatio;
-constexpr double ArmFlipPosition = 750.0;
-constexpr double FlipMotorDegrees = 180.0 * WristMotorToJointRatio;
-constexpr std::int32_t WristVelocity = 600;
-constexpr std::uint32_t UpdatePeriodMs = 20;
+constexpr std::uint32_t kUpdatePeriodMs = 20;
 
-pros::Task* leveling_task = nullptr;
-bool running = false;
+pros::Task* g_levelingTask = nullptr;
+bool g_running = false;
+ArmWristController* g_controller = nullptr;
 
-void update() {
-    bool has_previous_arm_position = false;
-    double previous_arm_position = 0.0;
-    double wrist_target = 0.0;
-    bool is_flipped = false;
-    while (true) {
-        if (!running) {
-            has_previous_arm_position = false;
-            pros::delay(UpdatePeriodMs);
-            continue;
+void updateTask() {
+    while (g_running) {
+        if (g_controller != nullptr) {
+            g_controller->update();
         }
-
-        const double arm_position = Arm.get_position();
-        if (!has_previous_arm_position) {
-            previous_arm_position = arm_position;
-            wrist_target = Wrist.get_position();
-            has_previous_arm_position = true;
-            pros::delay(UpdatePeriodMs);
-            continue;
-        }
-
-        const double arm_delta = arm_position - previous_arm_position;
-        previous_arm_position = arm_position;
-
-        if (arm_position > ArmFlipPosition && !is_flipped) {
-            wrist_target += WristDirection * FlipMotorDegrees;
-            is_flipped = true;
-        } else if (arm_position < ArmFlipPosition && is_flipped) {
-            wrist_target -= WristDirection * FlipMotorDegrees;
-            is_flipped = false;
-        } else {
-            wrist_target -= arm_delta * ArmDirection * WristDirection *
-                            WristMotorToArmMotorRatio;
-        }
-
-        if (std::abs(arm_delta) > 0.05 || arm_position == ArmFlipPosition) {
-            Wrist.move_absolute(wrist_target, WristVelocity);
-        }
-        pros::delay(UpdatePeriodMs);
+        pros::delay(kUpdatePeriodMs);
     }
 }
 
+}
+
+ArmWristController::ArmWristController(pros::Motor& armMotor,
+                                       pros::Motor& wristMotor,
+                                       double wristMinDeg,
+                                       double wristMaxDeg,
+                                       bool armReversed,
+                                       bool wristReversed,
+                                       int wristVelocity)
+    : armMotor_(armMotor),
+      wristMotor_(wristMotor),
+      wristMin_(wristMinDeg),
+      wristMax_(wristMaxDeg),
+      wristVelocity_(wristVelocity) {
+    armMotor_.set_reversed(armReversed);
+    wristMotor_.set_reversed(wristReversed);
+    armMotor_.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    wristMotor_.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+}
+
+void ArmWristController::update() {
+    const double armPhysicalDeg = armMotor_.get_position() / 5.0;
+    const double targetMotorDeg = computeWristTarget(armPhysicalDeg) * 2.0;
+    wristMotor_.move_absolute(targetMotorDeg, wristVelocity_);
+}
+
+void ArmWristController::zero() {
+    armMotor_.set_zero_position(0);
+    wristMotor_.set_zero_position(0);
+    wristFlipped_ = false;
+}
+
+void ArmWristController::setArmVoltageMv(int mv) {
+    armMotor_.move_voltage(mv);
+}
+
+void ArmWristController::setArmVelocity(int pct) {
+    armMotor_.move_velocity(pct);
+}
+
+void ArmWristController::setArmTargetAngle(double deg, int velocity) {
+    armMotor_.move_absolute(deg, velocity);
+}
+
+void ArmWristController::setWristVelocityLimit(int pct) {
+    wristVelocity_ = pct;
+}
+
+double ArmWristController::wrap180(double deg) {
+    double a = std::fmod(deg, 180.0);
+    if (a < 0.0) {
+        a += 180.0;
+    }
+    return a;
+}
+
+double ArmWristController::computeWristTarget(double armAngleDeg) {
+    double base = wrap180(-armAngleDeg);
+    double alt = base + 180.0;
+
+    double baseMotor = base * 2.0;
+    double altMotor = alt * 2.0;
+
+    if (baseMotor > 180.0) {
+        baseMotor -= 360.0;
+    }
+    if (altMotor > 180.0) {
+        altMotor -= 360.0;
+    }
+
+    const bool baseValid =
+        (baseMotor >= wristMin_ + (wristFlipped_ ? kHysteresis : 0.0)) &&
+        (baseMotor <= wristMax_);
+    const bool altValid =
+        (altMotor >= wristMin_) &&
+        (altMotor <= wristMax_ - (!wristFlipped_ ? kHysteresis : 0.0));
+
+    if (!wristFlipped_) {
+        if (!baseValid && altValid) {
+            wristFlipped_ = true;
+        }
+    } else {
+        if (!altValid && baseValid) {
+            wristFlipped_ = false;
+        }
+    }
+
+    return wristFlipped_ ? altMotor / 2.0 : baseMotor / 2.0;
 }
 
 void start() {
-    if (running) {
+    if (g_controller == nullptr) {
+        g_controller = new ArmWristController(Arm, Wrist, -180.0, 180.0, false, false, 100);
+    }
+
+    if (g_running) {
         return;
     }
 
-    running = true;
-    if (leveling_task == nullptr) {
-        leveling_task = new pros::Task(update, "Claw Leveling Task");
-    }
+    g_running = true;
+    g_levelingTask = new pros::Task(updateTask, "Arm Wrist Leveling Task");
 }
 
 void stop() {
-    if (!running) {
-        return;
-    }
-
-    running = false;
+    g_running = false;
+    g_levelingTask = nullptr;
 }
 
 }
