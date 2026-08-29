@@ -11,11 +11,11 @@
 namespace position_control {
 namespace {
 
-constexpr std::uint32_t LoopPeriodMs = 10;
+constexpr std::uint32_t LoopPeriodMs = 20;
 constexpr double PositionTolerance = 1.0;
-constexpr double Kp = 18.0;
+constexpr double Kp = 11.0;
 constexpr double Ki = 0.0;
-constexpr double Kd = 0.8;
+constexpr double Kd = 1.3;
 constexpr double IntegralLimit = 500.0;
 constexpr double MaxVoltage = 12000.0;
 

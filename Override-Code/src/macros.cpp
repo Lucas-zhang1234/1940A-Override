@@ -6,8 +6,8 @@
 void grab_pin_macro()
 {
     // Step 1: Move intake backwards
-    Intake.move_voltage(-12000);
-    pros::delay(300);
+    Intake.move_voltage(-6000);
+    pros::delay(250);
 
     // Step 2: Stop intake
     Intake.brake();
@@ -25,5 +25,6 @@ void grab_pin_macro()
 void score_position_macro()
 {
     position_control::move_absolute_degrees(position_control::MotorId::Lift, 0, 200, 2000);
+    position_control::move_absolute_degrees(position_control::MotorId::Wrist, 0, 400, 2000);
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -10, 600, 2000);
 }
