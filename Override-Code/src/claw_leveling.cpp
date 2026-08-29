@@ -19,7 +19,7 @@ constexpr double WristMotorToArmMotorRatio =
 constexpr double ArmFlipPosition = 750.0;
 constexpr double FlipMotorDegrees = 180.0 * WristMotorToJointRatio;
 constexpr double MinimumArmDelta = 0.05;
-constexpr std::int32_t WristVelocity = 12000;
+constexpr std::int32_t WristVelocity = 600;
 constexpr std::uint32_t UpdatePeriodMs = 20;
 
 pros::Task* leveling_task = nullptr;

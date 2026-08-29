@@ -194,7 +194,6 @@ void opcontrol() {
 		else
 		{
 			claw_leveling::start();
-			Wrist.brake();
 		}
 
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
