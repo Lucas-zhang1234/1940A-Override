@@ -18,13 +18,13 @@ constexpr double WristZero = 222.8; // in motor encoder degrees
 constexpr double ArmDirection = 1.0;
 constexpr double WristDirection = 1.0;
 constexpr double LevelAngle = 0.0;
-constexpr double WristMinimum = -350.0; // in motor encoder degrees
-constexpr double WristMaximum = 280.0; // in motor encoder degrees
+constexpr double WristMinimum = -250.0; // in motor encoder degrees
+constexpr double WristMaximum = 250.0; // in motor encoder degrees
 constexpr double ArmMotorToJointRatio = 5.0; // in motor encoder degrees per joint degree
 constexpr double WristMotorToJointRatio = 3.5; // in motor encoder degrees per joint degree
 constexpr std::int32_t WristVelocity = 600;
-constexpr std::uint32_t WristTimeoutMs = 250;
-constexpr std::uint32_t UpdatePeriodMs = 40;
+constexpr std::uint32_t WristTimeoutMs = 1000;
+constexpr std::uint32_t UpdatePeriodMs = 20;
 constexpr double TargetDeadband = 1.0;
 
 pros::Task* leveling_task = nullptr;
