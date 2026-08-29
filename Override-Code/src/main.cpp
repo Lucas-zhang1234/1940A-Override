@@ -2,10 +2,12 @@
 #include "pros/misc.h"
 #include "pros/motors.h"
 #include "pros/rtos.hpp"
+#include "pros/screen.h"
 #include "robot.hpp"
 #include "macros.hpp"
 #include "macro_manager.hpp"
 #include "position_control.hpp"
+#include <chrono>
 
 /**
  * A callback function for LLEMU's center button.
@@ -41,6 +43,13 @@ void initialize() {
 
 	Arm.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 	Lift.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
+	Wrist.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
+
+	Arm.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
+	Lift.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
+	Wrist.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
+
+	
 
 	position_control::start();
 	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");
@@ -77,8 +86,24 @@ void competition_initialize() {}
  */
 void autonomous() 
 {
-	Chassis.setPose(0, 0, 0);
-	Chassis.turnToHeading(90, 1000);
+	Arm.set_zero_position(0);
+	Lift.set_zero_position(0);
+	Wrist.set_zero_position(0);
+	// pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Initial Arm Position: %f", Arm.get_position());
+	// auto start = std::chrono::high_resolution_clock::now();
+	// position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 360, 1200, 2000);
+	// auto end = std::chrono::high_resolution_clock::now();
+	// auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	// pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Final Arm Position: %f", Arm.get_position());
+	// pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Duration: %lld ms", duration.count());
+	Fingers.retract();
+	pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Initial Lift Position: %f", Lift.get_position());
+	auto start = std::chrono::high_resolution_clock::now();
+	position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 180, 300, 2000);
+	auto end = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Final Lift Position: %f", Lift.get_position());
+	pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Duration: %lld ms", duration.count());
 }
 
 /**

@@ -78,8 +78,8 @@ lemlib::Chassis Chassis(Drivetrain, // drivetrain settings
 #pragma region Scoring
 
 pros::Motor Intake(21, pros::v5::MotorGears::blue); // check motor gears, neg. or pos. asw
-pros::Motor Wrist(14, pros::v5::MotorGears::blue); // neg. or pos.
-pros::Motor Arm(13, pros::v5::MotorGears::blue); // neg. or pos.
+pros::Motor Wrist(-14, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
+pros::Motor Arm(13, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
 pros::Motor Lift(12, pros::v5::MotorGears::green); // neg. or pos.
 
 pros::adi::Pneumatics Fingers({22, 'A'}, true); // starts closed

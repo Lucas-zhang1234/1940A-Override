@@ -12,10 +12,10 @@ namespace position_control {
 namespace {
 
 constexpr std::uint32_t LoopPeriodMs = 20;
-constexpr double PositionTolerance = 1.0;
-constexpr double Kp = 11.0;
-constexpr double Ki = 0.0;
-constexpr double Kd = 1.3;
+constexpr double PositionTolerance = 2.0;
+constexpr double Kp = 160.0;
+constexpr double Ki = 25.5;
+constexpr double Kd = 10.0;
 constexpr double IntegralLimit = 500.0;
 constexpr double MaxVoltage = 12000.0;
 
@@ -48,6 +48,7 @@ std::array<MotorState, 3> states{{
     {&Arm, 600.0},
     {&Wrist, 600.0}
 }};
+
 std::array<CommandResult, 32> command_results{};
 std::size_t command_result_count = 0;
 pros::Mutex state_mutex;
