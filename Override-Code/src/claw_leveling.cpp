@@ -46,7 +46,14 @@ ArmWristController::ArmWristController(pros::Motor& armMotor,
 
 void ArmWristController::update() {
     const double armPhysicalDeg = armMotor_.get_position() / 5.0;
-    const double targetMotorDeg = computeWristTarget(armPhysicalDeg) * 2.0;
+    const double targetPhysicalDeg = computeWristTarget(armPhysicalDeg);
+    const double targetMotorDeg = targetPhysicalDeg * 2.0;
+
+    pros::screen::print(pros::E_TEXT_MEDIUM, 4,
+                       "Wrist abs rel: %.2f deg", std::abs(targetPhysicalDeg));
+    pros::screen::print(pros::E_TEXT_MEDIUM, 5,
+                       "Wrist motor: %.2f deg", targetMotorDeg);
+
     wristMotor_.move_absolute(targetMotorDeg, wristVelocity_);
 }
 
