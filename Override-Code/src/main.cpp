@@ -40,6 +40,8 @@ void initialize() {
 
 	Arm.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 	Lift.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
+
+	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");
 }
 
 /**
@@ -102,6 +104,14 @@ void opcontrol() {
 		Left_MG.move(dir + turn);                      // Sets left motor voltage
 		Right_MG.move(dir - turn);                     // Sets right motor voltage
 
+		if (isMacroRunning())
+		{
+			if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_X))
+			{
+				clearMacros();
+			}
+			continue;
+		}
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 		{
 			// intake out
@@ -132,11 +142,11 @@ void opcontrol() {
 
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
 		{
-			Arm.move_voltage(12000);
+			Arm.move_voltage(-12000);
 		} 
 		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
 		{
-			Arm.move_voltage(-12000);
+			Arm.move_voltage(12000);
 		}
 		else 
 		{
@@ -147,6 +157,12 @@ void opcontrol() {
 		{
 			// macro to move intake back far enough, grab the pin with the claw, and rotate it upright
 			tryAddMacroToQueue(Macro::GRAB_PIN);
+		}
+
+		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
+		{
+			// macro to move intake back far enough, grab the pin with the claw, and rotate it upright
+			tryAddMacroToQueue(Macro::SCORE_POSITION);
 		}
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))

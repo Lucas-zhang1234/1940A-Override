@@ -5,9 +5,12 @@
 enum class Macro {
     NONE,
     GRAB_PIN,
+    SCORE_POSITION,
 };
 
 std::queue<Macro> macroQueue;
+
+bool macroRunning = false;
 
 bool tryAddMacroToQueue(Macro macro)
 {
@@ -16,8 +19,19 @@ bool tryAddMacroToQueue(Macro macro)
     return false;
 }
 
-void macroTask(void* param) {
+bool isMacroRunning()
+{
+    return macroRunning;
+}
 
+void clearMacros()
+{
+    while (!macroQueue.empty()) {
+        macroQueue.pop();
+    }
+}
+
+void macroTask(void* param) {
     while (true) {
         if (macroQueue.size() > 0)
         {
@@ -27,7 +41,16 @@ void macroTask(void* param) {
                     break;
 
                 case Macro::GRAB_PIN:
+                    macroRunning = true;
                     grab_pin_macro();
+                    macroRunning = false;
+                    macroQueue.pop();
+                    break;
+
+                case Macro::SCORE_POSITION:
+                    macroRunning = true;
+                    score_position_macro();
+                    macroRunning = false;
                     macroQueue.pop();
                     break;
             }
