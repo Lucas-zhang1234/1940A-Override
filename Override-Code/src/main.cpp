@@ -129,14 +129,6 @@ void opcontrol() {
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
 		
-		pros::screen::print(
-			3,
-			"A %.1f W %.1f T %.1f",
-			arm_position,
-			wrist_position,
-			target
-		);
-
 		pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm Position: %f", Arm.get_position());
 		pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist Position: %f", Wrist.get_position());
 		pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift Position: %f", Lift.get_position());

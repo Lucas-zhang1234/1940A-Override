@@ -3,6 +3,7 @@
 #include "position_control.hpp"
 #include "pros/rtos.hpp"
 #include "robot.hpp"
+#include "pros/screen.h"
 
 #include <array>
 #include <cmath>
@@ -21,7 +22,7 @@ constexpr double WristMinimum = -350.0; // in motor encoder degrees
 constexpr double WristMaximum = 280.0; // in motor encoder degrees
 constexpr double ArmMotorToJointRatio = 5.0; // in motor encoder degrees per joint degree
 constexpr double WristMotorToJointRatio = 3.5; // in motor encoder degrees per joint degree
-constexpr std::int32_t WristVelocity = 300;
+constexpr std::int32_t WristVelocity = 500;
 constexpr std::uint32_t WristTimeoutMs = 250;
 constexpr std::uint32_t UpdatePeriodMs = 40;
 constexpr double TargetDeadband = 1.0;
@@ -71,6 +72,15 @@ void update() {
         const double arm_position = Arm.get_position();
         const double wrist_position = Wrist.get_position();
         const double target = select_target(arm_position, wrist_position);
+
+        pros::screen::print(
+            pros::E_TEXT_MEDIUM,
+			3,
+			"A %.1f W %.1f T %.1f",
+			arm_position,
+			wrist_position,
+			target
+		);
 
         if (std::isfinite(target) &&
             (!std::isfinite(previous_target) || std::abs(target - previous_target) >= TargetDeadband)) {
