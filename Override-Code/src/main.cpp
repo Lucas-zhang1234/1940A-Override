@@ -3,6 +3,7 @@
 #include "pros/motors.h"
 #include "pros/rtos.hpp"
 #include "pros/screen.h"
+#include "pros/screen.hpp"
 #include "robot.hpp"
 #include "macros.hpp"
 #include "macro_manager.hpp"
@@ -16,7 +17,7 @@ constexpr double kArmGearRatio = 5.0;
 constexpr double kWristGearRatio = 2.0;
 constexpr double kWristTargetScale = kWristGearRatio / kArmGearRatio; // = 0.4, so wrist motor degrees = -(2/5) * arm motor degrees
 
-lemlib::PID WristPID(1.2, 0.0, 0.15, 0.0, false);
+lemlib::PID WristPID(20, 0.0, 5, 0.0, false);
 }
 
 /**
@@ -196,6 +197,13 @@ void opcontrol() {
 		const double wristOutput = WristPID.update(wristError);
 		const double clampedVoltage = std::clamp(wristOutput, -12000.0, 12000.0);
 		Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
+
+		pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", armMotorDegrees);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Wrist Target: %.2f deg", wristTargetDegrees);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist: %.2f deg", Wrist.get_position());
+		pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist Error: %.2f deg", wristError);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 4, "Wrist Output: %.2f mV", wristOutput);
+		pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Wrist Voltage: %.2f mV", clampedVoltage);
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
 		{
