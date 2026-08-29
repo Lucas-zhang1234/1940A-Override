@@ -15,7 +15,9 @@ public:
                        double wristMaxDeg = 90.0,
                        bool armReversed = false,
                        bool wristReversed = false,
-                       int wristVelocity = 100);
+                       int wristVelocity = 100,
+                       double wristMotorScale = 2.0,
+                       double wristMotorOffsetDeg = 90.0);
 
     void update();
     void zero();
@@ -32,9 +34,13 @@ private:
     double wristMin_;
     double wristMax_;
     int wristVelocity_ = 100;
+    double wristMotorScale_ = 2.0;
+    double wristMotorOffsetDeg_ = 90.0;
 
     double wristStartPhysicalDeg_ = -90.0;
 
+    static double normalizeWristAngleDeg(double deg);
+    double convertToMotorDeg(double wristPhysicalDeg) const;
     double computeWristTarget(double armAngleDeg);
 };
 
