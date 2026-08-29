@@ -50,7 +50,9 @@ void initialize() {
 	Lift.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 	Wrist.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 
-	
+	Arm.set_zero_position(-740);
+	Lift.set_zero_position(0);
+	Wrist.set_zero_position(-90);
 
 	position_control::start();
 	claw_leveling::start();
