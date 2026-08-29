@@ -3,6 +3,7 @@
 #include "pros/rtos.hpp"
 #include "robot.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 
@@ -80,33 +81,42 @@ void ArmWristController::setWristVelocityLimit(int pct) {
 }
 
 double ArmWristController::wrap180(double deg) {
-    double a = std::fmod(deg + 180.0, 360.0);
+    double a = std::fmod(deg, 360.0);
     if (a < 0.0) {
         a += 360.0;
     }
-    a -= 180.0;
-
-    if (a > 90.0) {
-        a -= 180.0;
-    } else if (a < -90.0) {
-        a += 180.0;
+    if (a > 180.0) {
+        a -= 360.0;
     }
-
     return a;
 }
 
 double ArmWristController::computeWristTarget(double armAngleDeg) {
-    const double targetPhysicalDeg = wrap180(-armAngleDeg);
-    const double targetMotorDeg = targetPhysicalDeg * 2.0;
+    const double desiredDeg = wrap180(-armAngleDeg);
+    const double currentDeg = wristMotor_.get_position() / 2.0;
 
-    const bool targetValid = (targetPhysicalDeg >= wristMin_) &&
-                             (targetPhysicalDeg <= wristMax_);
-
-    if (!targetValid) {
-        return std::clamp(targetPhysicalDeg, wristMin_, wristMax_);
+    double candidateA = desiredDeg;
+    double candidateB = desiredDeg + 180.0;
+    if (candidateB > 180.0) {
+        candidateB -= 360.0;
     }
 
-    return targetPhysicalDeg;
+    const bool aValid = (candidateA >= wristMin_) && (candidateA <= wristMax_);
+    const bool bValid = (candidateB >= wristMin_) && (candidateB <= wristMax_);
+
+    if (aValid && bValid) {
+        return std::fabs(candidateA - currentDeg) <= std::fabs(candidateB - currentDeg)
+                   ? candidateA
+                   : candidateB;
+    }
+    if (aValid) {
+        return candidateA;
+    }
+    if (bValid) {
+        return candidateB;
+    }
+
+    return std::clamp(currentDeg, wristMin_, wristMax_);
 }
 
 void start() {
