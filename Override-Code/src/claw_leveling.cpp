@@ -12,13 +12,15 @@
 namespace claw_leveling {
 namespace {
 
-constexpr double ArmZero = 0.0;
-constexpr double WristZero = 0.0;
+constexpr double ArmZero = 204.4; // in motor encoder degrees
+constexpr double WristZero = 222.8; // in motor encoder degrees
 constexpr double ArmDirection = 1.0;
 constexpr double WristDirection = 1.0;
 constexpr double LevelAngle = 0.0;
-constexpr double WristMinimum = -100.0;
-constexpr double WristMaximum = 100.0;
+constexpr double WristMinimum = -350.0; // in motor encoder degrees
+constexpr double WristMaximum = 280.0; // in motor encoder degrees
+constexpr double ArmMotorToJointRatio = 5.0; // in motor encoder degrees per joint degree
+constexpr double WristMotorToJointRatio = 3.5; // in motor encoder degrees per joint degree
 constexpr std::int32_t WristVelocity = 300;
 constexpr std::uint32_t WristTimeoutMs = 250;
 constexpr std::uint32_t UpdatePeriodMs = 40;
@@ -28,13 +30,14 @@ pros::Task* leveling_task = nullptr;
 bool running = false;
 
 double nearest_equivalent(double target, double current) {
-    return target + 360.0 * std::round((current - target) / 360.0);
+    const double motorFullRotation = 360.0 * WristMotorToJointRatio;
+    return target + motorFullRotation * std::round((current - target) / motorFullRotation);
 }
 
 double wrist_target_for(double arm_position, double desired_claw_angle) {
-    const double arm_angle = ArmDirection * (arm_position - ArmZero);
-    const double wrist_angle = desired_claw_angle - arm_angle;
-    return WristZero + WristDirection * wrist_angle;
+    const double arm_angle = ArmDirection * (arm_position - ArmZero) / ArmMotorToJointRatio;
+    const double wrist_angle = WristDirection * (desired_claw_angle - arm_angle) / WristMotorToJointRatio;
+    return WristZero + wrist_angle;
 }
 
 bool in_wrist_range(double target) {

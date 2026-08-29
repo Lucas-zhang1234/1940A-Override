@@ -126,7 +126,11 @@ void opcontrol() {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
-
+		
+		pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm Position: %f", Arm.get_position());
+		pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist Position: %f", Wrist.get_position());
+		pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift Position: %f", Lift.get_position());
+		
 		// Arcade control scheme
 		int dir = Master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
 		int turn = Master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
@@ -167,6 +171,19 @@ void opcontrol() {
 		else
 		{
 			Lift.brake();
+		}
+
+		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+		{
+			Wrist.move_voltage(6000);
+		}
+		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT))
+		{
+			Wrist.move_voltage(-6000);
+		}
+		else
+		{
+			Wrist.brake();
 		}
 
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
