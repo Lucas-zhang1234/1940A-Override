@@ -11,8 +11,8 @@ class ArmWristController {
 public:
     ArmWristController(pros::Motor& armMotor,
                        pros::Motor& wristMotor,
-                       double wristMinDeg = -180.0,
-                       double wristMaxDeg = 180.0,
+                       double wristMinDeg = -90.0,
+                       double wristMaxDeg = 90.0,
                        bool armReversed = false,
                        bool wristReversed = false,
                        int wristVelocity = 100);

@@ -50,7 +50,7 @@ void ArmWristController::update() {
     const double targetMotorDeg = targetPhysicalDeg * 2.0;
 
     pros::screen::print(pros::E_TEXT_MEDIUM, 4,
-                       "Wrist abs rel: %.2f deg", std::abs(targetPhysicalDeg));
+                       "Wrist rel: %.2f deg", targetPhysicalDeg);
     pros::screen::print(pros::E_TEXT_MEDIUM, 5,
                        "Wrist motor: %.2f deg", targetMotorDeg);
 
@@ -80,45 +80,33 @@ void ArmWristController::setWristVelocityLimit(int pct) {
 }
 
 double ArmWristController::wrap180(double deg) {
-    double a = std::fmod(deg, 180.0);
+    double a = std::fmod(deg + 180.0, 360.0);
     if (a < 0.0) {
+        a += 360.0;
+    }
+    a -= 180.0;
+
+    if (a > 90.0) {
+        a -= 180.0;
+    } else if (a < -90.0) {
         a += 180.0;
     }
+
     return a;
 }
 
 double ArmWristController::computeWristTarget(double armAngleDeg) {
-    double base = wrap180(-armAngleDeg);
-    double alt = base + 180.0;
+    const double targetPhysicalDeg = wrap180(-armAngleDeg);
+    const double targetMotorDeg = targetPhysicalDeg * 2.0;
 
-    double baseMotor = base * 2.0;
-    double altMotor = alt * 2.0;
+    const bool targetValid = (targetPhysicalDeg >= wristMin_) &&
+                             (targetPhysicalDeg <= wristMax_);
 
-    if (baseMotor > 180.0) {
-        baseMotor -= 360.0;
-    }
-    if (altMotor > 180.0) {
-        altMotor -= 360.0;
+    if (!targetValid) {
+        return std::clamp(targetPhysicalDeg, wristMin_, wristMax_);
     }
 
-    const bool baseValid =
-        (baseMotor >= wristMin_ + (wristFlipped_ ? kHysteresis : 0.0)) &&
-        (baseMotor <= wristMax_);
-    const bool altValid =
-        (altMotor >= wristMin_) &&
-        (altMotor <= wristMax_ - (!wristFlipped_ ? kHysteresis : 0.0));
-
-    if (!wristFlipped_) {
-        if (!baseValid && altValid) {
-            wristFlipped_ = true;
-        }
-    } else {
-        if (!altValid && baseValid) {
-            wristFlipped_ = false;
-        }
-    }
-
-    return wristFlipped_ ? altMotor / 2.0 : baseMotor / 2.0;
+    return targetPhysicalDeg;
 }
 
 void start() {
