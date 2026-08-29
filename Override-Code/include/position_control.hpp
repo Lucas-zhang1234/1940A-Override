@@ -11,6 +11,12 @@ enum class MotorId : std::uint8_t {
     Wrist
 };
 
+enum class ClawMode : std::uint8_t {
+    NORMAL,
+    FLIPPED,
+    FLIPPING
+};
+
 enum class Status : std::uint8_t {
     Pending,
     Running,
@@ -23,6 +29,15 @@ enum class Status : std::uint8_t {
 using CommandId = std::uint32_t;
 
 void start();
+
+double getArmAngle();
+double calculateClawTarget(double arm_angle, double desired_global_angle);
+void clawPID(double target);
+void updateClawCompensation();
+void setDesiredGlobalAngle(double angle);
+void setArmZeroOffset(double offset);
+void setClawZeroOffset(double offset);
+ClawMode getClawMode();
 
 CommandId move_absolute(MotorId motor, double position, std::int32_t max_velocity_rpm,
                         std::uint32_t timeout_ms);
