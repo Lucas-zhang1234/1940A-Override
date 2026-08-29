@@ -1,6 +1,7 @@
 #include "main.h"
 #include "pros/misc.h"
 #include "pros/motors.h"
+#include "pros/optical.h"
 #include "pros/rtos.hpp"
 #include "pros/screen.h"
 #include "pros/screen.hpp"
@@ -132,6 +133,7 @@ void autonomous()
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	bool overrideWristLeveling = false;
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
@@ -202,7 +204,7 @@ void opcontrol() {
 		}
 		const double wristOutput = WristPID.update(wristError);
 		const double clampedVoltage = std::clamp(wristOutput, -12000.0, 12000.0);
-		Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
+		if (!overrideWristLeveling) Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
 
 		pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", armMotorDegrees);
 		pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Wrist Target: %.2f deg", wristTargetDegrees);
@@ -210,6 +212,15 @@ void opcontrol() {
 		pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist Error: %.2f deg", wristError);
 		pros::screen::print(pros::E_TEXT_MEDIUM, 4, "Wrist Output: %.2f mV", wristOutput);
 		pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Wrist Voltage: %.2f mV", clampedVoltage);
+
+		if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+		{
+			Wrist.move_voltage(4000);
+		} 
+		else if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+		{
+			Wrist.move_voltage(-4000);
+		}
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
 		{
@@ -223,9 +234,23 @@ void opcontrol() {
 			tryAddMacroToQueue(Macro::SCORE_POSITION);
 		}
 
-		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
+		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1))
 		{
-			Fingers.toggle();
+			Fingers.extend();
+		}
+		else if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2))
+		{
+			Fingers.retract();
+		}
+
+		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
+		{
+			overrideWristLeveling = true;
+		}
+
+		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
+		{
+			overrideWristLeveling = false;
 		}
 
 		pros::delay(20);                               // Run for 20 ms then update
