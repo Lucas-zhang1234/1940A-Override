@@ -33,10 +33,8 @@ private:
     double wristMax_;
     int wristVelocity_ = 100;
 
-    bool wristFlipped_ = false;
-    static constexpr double kHysteresis = 5.0;
+    double wristStartPhysicalDeg_ = -90.0;
 
-    static double wrap180(double deg);
     double computeWristTarget(double armAngleDeg);
 };
 

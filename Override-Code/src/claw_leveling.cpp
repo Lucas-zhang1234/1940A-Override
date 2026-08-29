@@ -60,8 +60,8 @@ void ArmWristController::update() {
 
 void ArmWristController::zero() {
     armMotor_.set_zero_position(0);
+    wristStartPhysicalDeg_ = wristMotor_.get_position() / 2.0;
     wristMotor_.set_zero_position(0);
-    wristFlipped_ = false;
 }
 
 void ArmWristController::setArmVoltageMv(int mv) {
@@ -80,43 +80,15 @@ void ArmWristController::setWristVelocityLimit(int pct) {
     wristVelocity_ = pct;
 }
 
-double ArmWristController::wrap180(double deg) {
-    double a = std::fmod(deg, 360.0);
-    if (a < 0.0) {
-        a += 360.0;
-    }
-    if (a > 180.0) {
-        a -= 360.0;
-    }
-    return a;
-}
-
 double ArmWristController::computeWristTarget(double armAngleDeg) {
-    const double desiredDeg = wrap180(-armAngleDeg);
-    const double currentDeg = wristMotor_.get_position() / 2.0;
-
-    double candidateA = desiredDeg;
-    double candidateB = desiredDeg + 180.0;
-    if (candidateB > 180.0) {
-        candidateB -= 360.0;
+    const double targetPhysicalDeg = wristStartPhysicalDeg_ - armAngleDeg;
+    if (targetPhysicalDeg > wristMax_) {
+        return wristMax_;
     }
-
-    const bool aValid = (candidateA >= wristMin_) && (candidateA <= wristMax_);
-    const bool bValid = (candidateB >= wristMin_) && (candidateB <= wristMax_);
-
-    if (aValid && bValid) {
-        return std::fabs(candidateA - currentDeg) <= std::fabs(candidateB - currentDeg)
-                   ? candidateA
-                   : candidateB;
+    if (targetPhysicalDeg < wristMin_) {
+        return wristMin_;
     }
-    if (aValid) {
-        return candidateA;
-    }
-    if (bValid) {
-        return candidateB;
-    }
-
-    return std::clamp(currentDeg, wristMin_, wristMax_);
+    return targetPhysicalDeg;
 }
 
 void start() {
