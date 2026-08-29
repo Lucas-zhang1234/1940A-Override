@@ -13,14 +13,15 @@ namespace {
 
 constexpr std::uint32_t LoopPeriodMs = 10; // how often the loop runs
 constexpr double PositionTolerance = 1.0; // the motor is considered "at target" when it is within 1 degree of the pos
-constexpr double ClawMinRelativeAngle = -95.0; // wrist's allowed mechanical range relative to the arm
-constexpr double ClawMaxRelativeAngle = 95.0;
+constexpr double ClawMinRelativeAngle = -90.0; // wrist's allowed mechanical range relative to the arm
+constexpr double ClawMaxRelativeAngle = 90.0;
 constexpr double FlipMarginDegrees = 5.0;
 constexpr double Kp = 18.0;
 constexpr double Ki = 0.0;
 constexpr double Kd = 0.8;
 constexpr double IntegralLimit = 500.0;
 constexpr double MaxVoltage = 12000.0;
+constexpr double MinimumClawVoltage = 1200.0;
 constexpr double ArmZeroOffsetDegrees = 1921;
 constexpr double ClawZeroOffsetDegrees = -100;
 constexpr double DesiredGlobalAngleDegrees = 0.0;
@@ -132,13 +133,17 @@ std::int32_t pid_output(double error, double& integral, double& previous_error,
     const double output = std::clamp((Kp * error) + (Ki * integral) + (Kd * derivative),
                                      -MaxVoltage * velocity_limit,
                                      MaxVoltage * velocity_limit);
+    if (std::abs(error) > PositionTolerance && std::abs(output) < MinimumClawVoltage) {
+        return static_cast<std::int32_t>(std::copysign(MinimumClawVoltage, error));
+    }
     return static_cast<std::int32_t>(output);
 }
 
 void clawPIDUnlocked(double target) {
     // Never command outside the physical relative range, even during a flip.
     target = std::clamp(target, ClawMinRelativeAngle, ClawMaxRelativeAngle);
-    const double error = target - (Wrist.get_position() - claw_zero_offset);
+    const double claw_angle = Wrist.get_position() - claw_zero_offset;
+    const double error = target - claw_angle;
     if (std::abs(error) <= PositionTolerance) {
         Wrist.brake();
         claw_integral = 0.0;
