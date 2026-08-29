@@ -1,4 +1,10 @@
 #include "main.h"
+#include "pros/misc.h"
+#include "pros/motors.h"
+#include "pros/rtos.hpp"
+#include "robot.hpp"
+#include "macros.hpp"
+#include "macro_manager.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -27,6 +33,13 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+
+	// Since the front motors of each side are green:
+    Left_MG.set_gearing(pros::MotorGearset::green, 0);
+    Right_MG.set_gearing(pros::MotorGearset::green, 0);
+
+	Arm.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
+	Lift.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 }
 
 /**
@@ -58,7 +71,11 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() 
+{
+	Chassis.setPose(0, 0, 0);
+	Chassis.turnToHeading(90, 1000);
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -74,21 +91,69 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::MotorGroup left_mg({1, -2, 3});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
-	pros::MotorGroup right_mg({-4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
-
-
 	while (true) {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
 
 		// Arcade control scheme
-		int dir = master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
-		int turn = master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
-		left_mg.move(dir - turn);                      // Sets left motor voltage
-		right_mg.move(dir + turn);                     // Sets right motor voltage
+		int dir = Master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
+		int turn = Master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
+		Left_MG.move(dir + turn);                      // Sets left motor voltage
+		Right_MG.move(dir - turn);                     // Sets right motor voltage
+
+		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
+		{
+			// intake out
+			Intake.move_voltage(12000);
+		}
+		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
+		{
+			// intake in
+			Intake.move_voltage(-12000);
+		}
+		else
+		{
+			Intake.brake();
+		}
+
+		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+		{
+			Lift.move_voltage(12000);
+		}
+		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+		{
+			Lift.move_voltage(-12000);
+		}
+		else
+		{
+			Lift.brake();
+		}
+
+		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
+		{
+			Arm.move_voltage(12000);
+		} 
+		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+		{
+			Arm.move_voltage(-12000);
+		}
+		else 
+		{
+			Arm.brake();
+		}
+
+		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
+		{
+			// macro to move intake back far enough, grab the pin with the claw, and rotate it upright
+			tryAddMacroToQueue(Macro::GRAB_PIN);
+		}
+
+		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
+		{
+			Claw_Grip.toggle();
+		}
+
 		pros::delay(20);                               // Run for 20 ms then update
 	}
 }

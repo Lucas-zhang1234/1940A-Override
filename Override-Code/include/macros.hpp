@@ -1,0 +1,1 @@
+void grab_pin_macro();
