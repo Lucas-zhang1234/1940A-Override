@@ -23,7 +23,7 @@ struct PidGains {
 };
 
 constexpr PidGains ArmAndLiftGains{160.0, 25.5, 10.0, 500.0};
-constexpr PidGains WristGains{160.0, 0.0, 20.0, 0.0};
+constexpr PidGains WristGains{100.0, 0.0, 40.0, 0.0};
 
 struct Command {
     CommandId id;
