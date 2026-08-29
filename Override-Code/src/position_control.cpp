@@ -21,8 +21,8 @@ constexpr double Ki = 0.0;
 constexpr double Kd = 0.8;
 constexpr double IntegralLimit = 500.0;
 constexpr double MaxVoltage = 12000.0;
-constexpr double ArmZeroOffsetDegrees = 0.0;
-constexpr double ClawZeroOffsetDegrees = 0.0;
+constexpr double ArmZeroOffsetDegrees = 1921;
+constexpr double ClawZeroOffsetDegrees = -100;
 constexpr double DesiredGlobalAngleDegrees = 0.0;
 
 struct Command {
