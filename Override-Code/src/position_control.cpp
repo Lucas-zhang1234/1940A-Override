@@ -11,23 +11,23 @@
 namespace position_control {
 namespace {
 
-constexpr std::uint32_t LoopPeriodMs = 10; // how often the loop runs
+constexpr std::uint32_t LoopPeriodMs = 20; // how often the loop runs
 constexpr double PositionTolerance = 1.0; // the motor is considered "at target" when it is within 1 degree of the pos
-constexpr double ClawPositionTolerance = 2.5;
+constexpr double ClawPositionTolerance = 1;
 constexpr double ClawMinRelativeAngle = -90.0; // wrist's allowed mechanical range relative to the arm
 constexpr double ClawMaxRelativeAngle = 90.0;
 constexpr double FlipMarginDegrees = 5.0;
 constexpr double Kp = 18.0;
 constexpr double Ki = 0.0;
-constexpr double Kd = 0.8;
+constexpr double Kd = 4;
 constexpr double IntegralLimit = 500.0;
 constexpr double MaxVoltage = 12000.0;
 constexpr double ClawKp = 80.0;
-constexpr double ClawKd = 1.5;
+constexpr double ClawKd = 6;
 constexpr double ClawMaxVoltageStep = 1200.0;
 constexpr double ArmZeroOffsetDegrees = 1921;
 constexpr double ClawZeroOffsetDegrees = -100;
-constexpr double DesiredGlobalAngleDegrees = 0.0;
+constexpr double DesiredGlobalAngleDegrees = 90;
 
 struct Command {
     CommandId id;
