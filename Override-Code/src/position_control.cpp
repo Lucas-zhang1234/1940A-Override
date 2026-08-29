@@ -42,6 +42,7 @@ struct MotorState {
     Status active_status = Status::Pending;
     double integral = 0.0;
     double previous_error = 0.0;
+    double previous_position = 0.0;
     bool has_active = false;
 };
 
@@ -100,14 +101,19 @@ void control_loop() {
                 state.has_active = true;
                 state.integral = 0.0;
                 state.previous_error = 0.0;
+                state.previous_position = state.motor->get_position();
             }
 
             const double error = state.active.target - state.motor->get_position();
             if (std::abs(error) <= PositionTolerance) {
-                finish(state, Status::Completed);
+                if (state.active.id != 0) {
+                    finish(state, Status::Completed);
+                } else {
+                    state.motor->brake();
+                }
                 continue;
             }
-            if (now - state.active.started_at >= state.active.timeout_ms) {
+            if (state.active.id != 0 && now - state.active.started_at >= state.active.timeout_ms) {
                 finish(state, Status::TimedOut);
                 continue;
             }
@@ -115,8 +121,11 @@ void control_loop() {
             state.integral = std::clamp(
                 state.integral + error * (LoopPeriodMs / 1000.0),
                 -state.gains.integral_limit, state.gains.integral_limit);
-            const double derivative = (error - state.previous_error) / (LoopPeriodMs / 1000.0);
+            const double position = state.motor->get_position();
+            const double derivative =
+                -(position - state.previous_position) / (LoopPeriodMs / 1000.0);
             state.previous_error = error;
+            state.previous_position = position;
 
             const double velocity_limit = std::clamp(
                 static_cast<double>(state.active.max_velocity_rpm) / state.motor_max_rpm, 0.05, 1.0);
@@ -181,6 +190,7 @@ void clear_target(MotorId motor) {
     state.active_status = Status::Cancelled;
     state.integral = 0.0;
     state.previous_error = 0.0;
+    state.previous_position = state.motor->get_position();
     state.motor->brake();
     state_mutex.give();
 }
@@ -201,6 +211,7 @@ void set_target(MotorId motor, double position, std::int32_t max_velocity_rpm,
         state.has_active = true;
         state.integral = 0.0;
         state.previous_error = 0.0;
+        state.previous_position = state.motor->get_position();
     } else {
         state.active.target = position;
         state.active.max_velocity_rpm = max_velocity_rpm;
