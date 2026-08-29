@@ -13,11 +13,17 @@ namespace {
 
 constexpr std::uint32_t LoopPeriodMs = 20;
 constexpr double PositionTolerance = 2.0;
-constexpr double Kp = 160.0;
-constexpr double Ki = 25.5;
-constexpr double Kd = 10.0;
-constexpr double IntegralLimit = 500.0;
 constexpr double MaxVoltage = 12000.0;
+
+struct PidGains {
+    double kp;
+    double ki;
+    double kd;
+    double integral_limit;
+};
+
+constexpr PidGains ArmAndLiftGains{160.0, 25.5, 10.0, 500.0};
+constexpr PidGains WristGains{160.0, 0.0, 20.0, 0.0};
 
 struct Command {
     CommandId id;
@@ -30,6 +36,7 @@ struct Command {
 struct MotorState {
     pros::Motor* motor;
     double motor_max_rpm;
+    PidGains gains;
     std::deque<Command> queue;
     Command active{};
     Status active_status = Status::Pending;
@@ -44,9 +51,9 @@ struct CommandResult {
 };
 
 std::array<MotorState, 3> states{{
-    {&Lift, 200.0},
-    {&Arm, 600.0},
-    {&Wrist, 600.0}
+    {&Lift, 200.0, ArmAndLiftGains},
+    {&Arm, 600.0, ArmAndLiftGains},
+    {&Wrist, 600.0, WristGains}
 }};
 
 std::array<CommandResult, 32> command_results{};
@@ -105,15 +112,18 @@ void control_loop() {
                 continue;
             }
 
-            state.integral = std::clamp(state.integral + error * (LoopPeriodMs / 1000.0),
-                                        -IntegralLimit, IntegralLimit);
+            state.integral = std::clamp(
+                state.integral + error * (LoopPeriodMs / 1000.0),
+                -state.gains.integral_limit, state.gains.integral_limit);
             const double derivative = (error - state.previous_error) / (LoopPeriodMs / 1000.0);
             state.previous_error = error;
 
             const double velocity_limit = std::clamp(
                 static_cast<double>(state.active.max_velocity_rpm) / state.motor_max_rpm, 0.05, 1.0);
             const double output = std::clamp(
-                (Kp * error) + (Ki * state.integral) + (Kd * derivative),
+                (state.gains.kp * error) +
+                    (state.gains.ki * state.integral) +
+                    (state.gains.kd * derivative),
                 -MaxVoltage * velocity_limit, MaxVoltage * velocity_limit);
             state.motor->move_voltage(static_cast<std::int32_t>(output));
         }
