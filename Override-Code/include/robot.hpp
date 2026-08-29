@@ -44,11 +44,11 @@ extern lemlib::Chassis Chassis;
 #pragma region Scoring
 
 extern pros::Motor Intake; // check motor gears, neg. or pos. asw
-extern pros::Motor Claw_Rotation; // neg. or pos.
+extern pros::Motor Wrist; // neg. or pos.
 extern pros::Motor Arm; // neg. or pos.
 extern pros::Motor Lift; // neg. or pos.
 
-extern pros::adi::Pneumatics Claw_Grip;            // Starts retracted, extends when the ADI port is high
+extern pros::adi::Pneumatics Fingers;              // Starts retracted, extends when the ADI port is high
 
 #pragma endregion
 

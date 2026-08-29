@@ -2,10 +2,10 @@
 
 void close_claw()
 {
-    Claw_Grip.extend();
+    Fingers.extend();
 }
 
 void open_claw()
 {
-    Claw_Grip.retract();
+    Fingers.retract();
 }

@@ -5,6 +5,7 @@
 #include "robot.hpp"
 #include "macros.hpp"
 #include "macro_manager.hpp"
+#include "position_control.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -41,6 +42,7 @@ void initialize() {
 	Arm.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 	Lift.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 
+	position_control::start();
 	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");
 }
 
@@ -167,7 +169,7 @@ void opcontrol() {
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
 		{
-			Claw_Grip.toggle();
+			Fingers.toggle();
 		}
 
 		pros::delay(20);                               // Run for 20 ms then update

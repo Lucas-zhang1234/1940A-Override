@@ -82,7 +82,7 @@ pros::Motor Wrist(14, pros::v5::MotorGears::blue); // neg. or pos.
 pros::Motor Arm(13, pros::v5::MotorGears::blue); // neg. or pos.
 pros::Motor Lift(12, pros::v5::MotorGears::green); // neg. or pos.
 
-pros::adi::Pneumatics Claw_Grip({22, 'A'}, true); // starts closed
+pros::adi::Pneumatics Fingers({22, 'A'}, true); // starts closed
 
 #pragma endregion
 

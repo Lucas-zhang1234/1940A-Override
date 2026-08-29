@@ -1,6 +1,7 @@
 #include "robot.hpp"
 #include "helpers.hpp"
 #include "macros.hpp"
+#include "position_control.hpp"
 
 void grab_pin_macro()
 {
@@ -23,6 +24,6 @@ void grab_pin_macro()
 
 void score_position_macro()
 {
-    Lift.move_absolute(0, 12000);
-    Arm.move_absolute(-10, 12000);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 0, 200, 2000);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -10, 600, 2000);
 }
