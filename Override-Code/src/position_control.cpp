@@ -11,10 +11,10 @@
 namespace position_control {
 namespace {
 
-constexpr std::uint32_t LoopPeriodMs = 10;
-constexpr double PositionTolerance = 1.0;
-constexpr double ClawMinRelativeAngle = -90.0;
-constexpr double ClawMaxRelativeAngle = 90.0;
+constexpr std::uint32_t LoopPeriodMs = 10; // how often the loop runs
+constexpr double PositionTolerance = 1.0; // the motor is considered "at target" when it is within 1 degree of the pos
+constexpr double ClawMinRelativeAngle = -95.0; // wrist's allowed mechanical range relative to the arm
+constexpr double ClawMaxRelativeAngle = 95.0;
 constexpr double FlipMarginDegrees = 5.0;
 constexpr double Kp = 18.0;
 constexpr double Ki = 0.0;
