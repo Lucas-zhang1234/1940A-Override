@@ -3,7 +3,8 @@ enum class Macro {
     GRAB_PIN,
     SCORE_POSITION,
     ONE_PIN,
-    TWO_PIN
+    TWO_PIN,
+    MATCHLOADER
 };
 
 bool isMacroRunning();

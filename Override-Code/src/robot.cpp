@@ -9,8 +9,8 @@
 pros::Controller Master(pros::E_CONTROLLER_MASTER);
 pros::Controller Partner(pros::E_CONTROLLER_PARTNER);
 
-pros::MotorGroup Left_MG({-5, -3, -4}, pros::MotorGearset::blue);    
-pros::MotorGroup Right_MG({7, 9, 10}, pros::MotorGearset::blue);
+pros::MotorGroup Left_MG({-4, -2, -3}, pros::MotorGearset::blue);    
+pros::MotorGroup Right_MG({5, 8, 10}, pros::MotorGearset::blue);
 
 lemlib::Drivetrain Drivetrain(&Left_MG, &Right_MG,
                               11.42, // track width in inches
@@ -23,20 +23,18 @@ pros::Imu IMU(15);
 
 #pragma region Odometry
 
-pros::Rotation Vertical_Rot(-6);
-pros::Rotation Right_Horizontal_Rot(8);
-pros::Rotation Left_Horizontal_Rot(-2);
+pros::Rotation Vertical_Rot(-7);
+pros::Rotation Right_Horizontal_Rot(6);
 
 lemlib::TrackingWheel Vertical_TW(&Vertical_Rot, lemlib::Omniwheel::NEW_2, 0.75);
 lemlib::TrackingWheel Right_Horizontal_TW(&Right_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.9);
-lemlib::TrackingWheel Left_Horizontal_TW(&Left_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.9);
 
 #pragma endregion
 
 lemlib::OdomSensors Sensors(&Vertical_TW, // vertical tracking wheel 1
                             nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
                             &Right_Horizontal_TW, // horizontal tracking wheel 1
-                            &Left_Horizontal_TW, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
+                            nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
                             &IMU // inertial sensor
 );
 
@@ -90,6 +88,6 @@ pros::adi::Pneumatics Fingers({22, 'A'}, true); // starts closed
 
 pros::Distance Back_DS(17);
 pros::Distance Right_DS(16);
-pros::Distance Left_DS(20);
+pros::Distance Left_DS(19);
 
 #pragma endregion

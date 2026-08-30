@@ -123,18 +123,19 @@ void autonomous()
 	// pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Duration: %lld ms", duration.count());
 
 	double firstY = -6.784;
-    double firstX = -54;
+    double firstX = -49.0;
     chassis.setPose(-64.188, firstY, 270);
 
     chassis.moveToPoint(firstX, firstY, 2000, {.forwards=false});
-    chassis.moveToPoint(-71, firstY, 1300);
+    chassis.moveToPoint(-71, firstY, 1300, {.minSpeed=100});
     chassis.moveToPoint(firstX-2, firstY, 2000, {.forwards=false});
-    chassis.moveToPoint(-71, firstY, 1300);
+    chassis.moveToPoint(-71, firstY, 1300, {.minSpeed=100});
+	chassis.moveToPoint(firstX-2, firstY, 2000, {.forwards=false});
 
-    chassis.moveToPoint(-48, firstY, 2000, {.forwards=false});
-    chassis.turnToHeading(0, 1000);
+    // chassis.moveToPoint(-48, firstY, 2000, {.forwards=false});
+    // chassis.turnToHeading(0, 1000);
 
-    chassis.moveToPoint(-48, -18.377, 1000, {.forwards=false});
+    // chassis.moveToPoint(-48, -18.377, 1000, {.forwards=false});
 	// turn();
 }
 
@@ -207,7 +208,7 @@ void opcontrol() {
 		{
 			Arm.move_voltage(-12000);
 		}
-		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && Arm.get_position() < 660.0)
 		{
 			Arm.move_voltage(12000);
 		}
@@ -236,12 +237,12 @@ void opcontrol() {
 
 		if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
 		{
-			Wrist.move_voltage(4000);
+			Wrist.move_voltage(2000);
 			overrideWristLeveling = true;
 		} 
 		else if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
 		{
-			Wrist.move_voltage(-4000);
+			Wrist.move_voltage(-2000);
 			overrideWristLeveling = true;
 		}
 		else if (overrideWristLeveling)
@@ -290,7 +291,7 @@ void opcontrol() {
 
 		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
 		{
-			overrideWristLeveling = false;
+			tryAddMacroToQueue(Macro::MATCHLOADER);
 		}
 
 		pros::delay(20);                               // Run for 20 ms then update

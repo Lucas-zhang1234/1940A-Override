@@ -8,6 +8,7 @@ enum class Macro {
     SCORE_POSITION,
     ONE_PIN,
     TWO_PIN,
+    MATCHLOADER
 };
 
 std::queue<Macro> macroQueue;
@@ -66,6 +67,13 @@ void macroTask(void* param) {
                 case Macro::TWO_PIN:
                     macroRunning = true;
                     two_pin_macro();
+                    macroRunning = false;
+                    macroQueue.pop();
+                    break;
+
+                case Macro::MATCHLOADER:
+                    macroRunning = true;
+                    matchloader_macro();
                     macroRunning = false;
                     macroQueue.pop();
                     break;

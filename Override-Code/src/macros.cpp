@@ -40,8 +40,17 @@ void one_pin_macro()
 
 void two_pin_macro()
 {
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 146.4, 600, 2000);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 146.4, 600, 1000);
     position_control::move_absolute_degrees(position_control::MotorId::Arm, 620.8, 600, 2000);
     Wrist.move_absolute(-18, 600);
-    pros::delay(700);
+    pros::delay(300);
+}
+
+void matchloader_macro()
+{
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 55.6, 600, 2000);
+    position_control::move_absolute_degrees(position_control::MotorId::Arm, -60, 600, 2000);
+    Wrist.move_absolute(220, 600);
+    pros::delay(100);
+    Fingers.extend();
 }
