@@ -9,8 +9,8 @@
 pros::Controller Master(pros::E_CONTROLLER_MASTER);
 pros::Controller Partner(pros::E_CONTROLLER_PARTNER);
 
-pros::MotorGroup Left_MG({-4, -2, -3}, pros::MotorGearset::blue);    
-pros::MotorGroup Right_MG({5, 8, 10}, pros::MotorGearset::blue);
+pros::MotorGroup Left_MG({-18, -20, -19}, pros::MotorGearset::blue);    
+pros::MotorGroup Right_MG({16, 12, 13}, pros::MotorGearset::blue);
 
 lemlib::Drivetrain Drivetrain(&Left_MG, &Right_MG,
                               11.42, // track width in inches
@@ -19,22 +19,24 @@ lemlib::Drivetrain Drivetrain(&Left_MG, &Right_MG,
                               2 // Drift was 2  0.5
 );
 
-pros::Imu IMU(15);
+pros::Imu IMU(9);
 
 #pragma region Odometry
 
-pros::Rotation Vertical_Rot(-7);
-pros::Rotation Right_Horizontal_Rot(6);
+pros::Rotation Vertical_Rot(-17);
+pros::Rotation Right_Horizontal_Rot(15);
+pros::Rotation Left_Horizontal_Rot(14);
 
 lemlib::TrackingWheel Vertical_TW(&Vertical_Rot, lemlib::Omniwheel::NEW_2, 0.75);
 lemlib::TrackingWheel Right_Horizontal_TW(&Right_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.9);
+lemlib::TrackingWheel Left_Horizontal_TW(&Left_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.9);
 
 #pragma endregion
 
 lemlib::OdomSensors Sensors(&Vertical_TW, // vertical tracking wheel 1
                             nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
                             &Right_Horizontal_TW, // horizontal tracking wheel 1
-                            nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
+                            &Left_Horizontal_TW, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
                             &IMU // inertial sensor
 );
 
@@ -76,9 +78,9 @@ lemlib::Chassis chassis(Drivetrain, // drivetrain settings
 #pragma region Scoring
 
 pros::Motor Intake(21, pros::v5::MotorGears::blue); // check motor gears, neg. or pos. asw
-pros::Motor Wrist(-14, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
-pros::Motor Arm(13, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
-pros::Motor Lift(12, pros::v5::MotorGears::green); // neg. or pos.
+pros::Motor Wrist(1, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
+pros::Motor Arm(2, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
+pros::Motor Lift(10, pros::v5::MotorGears::green); // neg. or pos.
 
 pros::adi::Pneumatics Fingers({22, 'A'}, true); // starts closed
 
@@ -86,8 +88,8 @@ pros::adi::Pneumatics Fingers({22, 'A'}, true); // starts closed
 
 #pragma region Distance Sensors
 
-pros::Distance Back_DS(17);
-pros::Distance Right_DS(16);
+pros::Distance Back_DS(8);
+pros::Distance Right_DS(7);
 pros::Distance Left_DS(19);
 
 #pragma endregion

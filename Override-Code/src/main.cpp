@@ -137,6 +137,9 @@ void autonomous()
 
     // chassis.moveToPoint(-48, -18.377, 1000, {.forwards=false});
 	// turn();
+
+	// chassis.moveToPoint(-5, firstY, 3000, {.forwards=false, .minSpeed=30});
+
 }
 
 /**
@@ -191,11 +194,11 @@ void opcontrol() {
 
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
 		{
-			Lift.move_voltage(12000);
+			Lift.move_voltage(13000);
 		}
 		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
 		{
-			Lift.move_voltage(-12000);
+			Lift.move_voltage(-13000);
 		}
 		else
 		{
@@ -206,49 +209,57 @@ void opcontrol() {
 		                             Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
 		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
 		{
+			
 			Arm.move_voltage(-12000);
+			Wrist.move_voltage(3500);
+			// if (Wrist.get_position() < -3.0)
+			// {
+			// 	Wrist.brake();
+			// }
 		}
 		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && Arm.get_position() < 660.0)
 		{
 			Arm.move_voltage(12000);
+			Wrist.move_velocity(-55);
 		}
 		else
 		{
 			Arm.brake();
-		}
-
-		const double armMotorDegrees = Arm.get_position();
-		const double wristTargetDegrees = -armMotorDegrees * kWristTargetScale;
-		const double wristError = wristTargetDegrees - Wrist.get_position();
-		if (!armCommandActive) {
-			WristPID.reset();
-		}
-		const double wristOutput = WristPID.update(wristError);
-		const double clampedVoltage = std::clamp(wristOutput, -12000.0, 12000.0);
-		if (!overrideWristLeveling) Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
-
-		pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", armMotorDegrees);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist Target: %.2f deg", wristTargetDegrees);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist: %.2f deg", Wrist.get_position());
-		pros::screen::print(pros::E_TEXT_MEDIUM,4, "Wrist Error: %.2f deg", wristError);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Wrist Output: %.2f mV", wristOutput);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 6, "Wrist Voltage: %.2f mV", clampedVoltage);
-		pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift: %.2f deg", Lift.get_position());
-
-		if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-		{
-			Wrist.move_voltage(2000);
-			overrideWristLeveling = true;
-		} 
-		else if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
-		{
-			Wrist.move_voltage(-2000);
-			overrideWristLeveling = true;
-		}
-		else if (overrideWristLeveling)
-		{
 			Wrist.brake();
 		}
+
+		// const double armMotorDegrees = Arm.get_position();
+		// const double wristTargetDegrees = -armMotorDegrees * kWristTargetScale;
+		// const double wristError = wristTargetDegrees - Wrist.get_position();
+		// if (!armCommandActive) {
+		// 	WristPID.reset();
+		// }
+		// const double wristOutput = WristPID.update(wristError);
+		// const double clampedVoltage = std::clamp(wristOutput, -12000.0, 12000.0);
+		// if (!overrideWristLeveling) Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
+
+		// pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", armMotorDegrees);
+		// pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist Target: %.2f deg", wristTargetDegrees);
+		// pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist: %.2f deg", Wrist.get_position());
+		// pros::screen::print(pros::E_TEXT_MEDIUM,4, "Wrist Error: %.2f deg", wristError);
+		// pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Wrist Output: %.2f mV", wristOutput);
+		// pros::screen::print(pros::E_TEXT_MEDIUM, 6, "Wrist Voltage: %.2f mV", clampedVoltage);
+		// pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift: %.2f deg", Lift.get_position());
+
+		// if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+		// {
+		// 	Wrist.move_voltage(2000);
+		// 	overrideWristLeveling = true;
+		// } 
+		// else if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+		// {
+		// 	Wrist.move_voltage(-2000);
+		// 	overrideWristLeveling = true;
+		// }
+		// else if (overrideWristLeveling)
+		// {
+		// 	Wrist.brake();
+		// }
 
 		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)
 			|| Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
