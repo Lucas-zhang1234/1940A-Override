@@ -49,6 +49,10 @@ void on_center_button() {
  */
 void initialize() {
 	IMU.reset(true);
+	chassis.calibrate();
+	pros::delay(2000);
+
+	chassis.setPose(0, 0, 0);
 
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User!");
@@ -123,15 +127,15 @@ void autonomous()
 	// pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Final Lift Position: %f", Lift.get_position());
 	// pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Duration: %lld ms", duration.count());
 
-	double firstY = -6.784;
-    double firstX = -49.0;
-    chassis.setPose(-64.188, firstY, 270);
+	// double firstY = -6.784;
+    // double firstX = -49.0;
+    // chassis.setPose(-64.188, firstY, 270);
 
-    chassis.moveToPoint(firstX, firstY, 2000, {.forwards=false});
-    chassis.moveToPoint(-71, firstY, 1300, {.minSpeed=100});
-    chassis.moveToPoint(firstX-2, firstY, 2000, {.forwards=false});
-    chassis.moveToPoint(-71, firstY, 1300, {.minSpeed=100});
-	chassis.moveToPoint(firstX-2, firstY, 2000, {.forwards=false});
+    // chassis.moveToPoint(firstX, firstY, 2000, {.forwards=false});
+    // chassis.moveToPoint(-71, firstY, 1300, {.minSpeed=100});
+    // chassis.moveToPoint(firstX-2, firstY, 2000, {.forwards=false});
+    // chassis.moveToPoint(-71, firstY, 1300, {.minSpeed=100});
+	// chassis.moveToPoint(firstX-2, firstY, 2000, {.forwards=false});
 
     // chassis.moveToPoint(-48, firstY, 2000, {.forwards=false});
     // chassis.turnToHeading(0, 1000);
@@ -140,6 +144,8 @@ void autonomous()
 	// turn();
 
 	// chassis.moveToPoint(-5, firstY, 3000, {.forwards=false, .minSpeed=30});
+	pros::Task outputTheta(outputThetaTask, nullptr, "Output Theta Task");
+	turn();
 
 }
 
@@ -147,6 +153,10 @@ void displayDebugging()
 {
 	pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", Arm.get_position());
 	pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift: %.2f deg", Lift.get_position());
+    pros::screen::print(pros::E_TEXT_MEDIUM, 2, "IMU heading: %.2f | LemLib theta: %.2f\n", 
+		IMU.get_heading(), chassis.getPose().theta);
+	pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Right Horizontal: %.2f deg", Right_Horizontal_TW.getDistanceTraveled());
+	pros::screen::print(pros::E_TEXT_MEDIUM, 4, "Left Horizontal: %.2f deg", Left_Horizontal_TW.getDistanceTraveled());
 }
 
 /**

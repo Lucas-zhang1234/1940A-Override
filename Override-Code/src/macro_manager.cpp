@@ -56,7 +56,6 @@ void macroTask(void* param) {
             }
         }
         
-
         pros::delay(10);
     }
 }

@@ -5,6 +5,7 @@
 #include "pros/distance.hpp"
 #include "pros/motors.hpp"
 #include "pros/optical.hpp"
+#include <cstddef>
 
 pros::Controller Master(pros::E_CONTROLLER_MASTER);
 pros::Controller Partner(pros::E_CONTROLLER_PARTNER);
@@ -15,8 +16,8 @@ pros::MotorGroup Right_MG({16, 12, 13}, pros::MotorGearset::blue);
 lemlib::Drivetrain Drivetrain(&Left_MG, &Right_MG,
                               11.42, // track width in inches
                               lemlib::Omniwheel::NEW_325, // Wheel configuration
-                              600, // RPM
-                              2 // Drift was 2  0.5
+                              450, // RPM
+                              0 // Drift was 2  0.5
 );
 
 pros::Imu IMU(9);
@@ -25,18 +26,18 @@ pros::Imu IMU(9);
 
 pros::Rotation Vertical_Rot(-17);
 pros::Rotation Right_Horizontal_Rot(15);
-pros::Rotation Left_Horizontal_Rot(14);
+pros::Rotation Left_Horizontal_Rot(-14);
 
 lemlib::TrackingWheel Vertical_TW(&Vertical_Rot, lemlib::Omniwheel::NEW_2, 0.75);
 lemlib::TrackingWheel Right_Horizontal_TW(&Right_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.9);
-lemlib::TrackingWheel Left_Horizontal_TW(&Left_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.9);
+lemlib::TrackingWheel Left_Horizontal_TW(&Left_Horizontal_Rot, lemlib::Omniwheel::NEW_2, 2.89);
 
 #pragma endregion
 
 lemlib::OdomSensors Sensors(&Vertical_TW, // vertical tracking wheel 1
                             nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
-                            &Right_Horizontal_TW, // horizontal tracking wheel 1
-                            &Left_Horizontal_TW, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
+                            &Right_Horizontal_TW, // horizontal tracking wheel 1, right
+                            &Left_Horizontal_TW, // horizontal tracking wheel 2, left
                             &IMU // inertial sensor
 );
 
@@ -55,14 +56,14 @@ lemlib::ControllerSettings Lateral_Controller(1.5472, // proportional gain (kP)
 );
 
 // angular PID controller
-lemlib::ControllerSettings Angular_Controller(6, // proportional gain (kP)
+lemlib::ControllerSettings Angular_Controller(0.4, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              3.2, // derivative gain (kD)
+                                              0.3, // derivative gain (kD)
                                               0, // anti windup
-                                              1, // small error range, in degrees (1)
-                                              100, // small error range timeout, in milliseconds (100)
-                                              3, // large error range, in degrees (3)
-                                              200, // large error range timeout, in milliseconds (200)
+                                              0, // small error range, in degrees (1)
+                                              0, // small error range timeout, in milliseconds (100)
+                                              0, // large error range, in degrees (3)
+                                              0, // large error range timeout, in milliseconds (200)
                                               0 // maximum acceleration (slew) (20)
 );
 
