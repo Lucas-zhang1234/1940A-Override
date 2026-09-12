@@ -77,12 +77,10 @@ lemlib::Chassis chassis(Drivetrain, // drivetrain settings
 
 #pragma region Scoring
 
-pros::Motor Intake(21, pros::v5::MotorGears::blue); // check motor gears, neg. or pos. asw
-pros::Motor Wrist(1, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
-pros::Motor Arm(2, pros::v5::MotorGears::blue, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
-pros::Motor Lift(10, pros::v5::MotorGears::green); // neg. or pos.
-
-pros::adi::Pneumatics Fingers({22, 'A'}, true); // starts closed
+pros::Motor Intake(4, pros::v5::MotorGears::green); // check motor gears, neg. or pos. asw
+pros::Motor Grip(2, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
+pros::Motor Arm(3, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
+pros::Motor Lift(10, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
 
 #pragma endregion
 
@@ -90,6 +88,6 @@ pros::adi::Pneumatics Fingers({22, 'A'}, true); // starts closed
 
 pros::Distance Back_DS(8);
 pros::Distance Right_DS(7);
-pros::Distance Left_DS(19);
+pros::Distance Left_DS(1);
 
 #pragma endregion

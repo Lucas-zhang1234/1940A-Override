@@ -1,3 +1,2 @@
-void close_claw();
-
-void open_claw();
+void release_grip();
+void hold_grip();

@@ -66,6 +66,7 @@ void initialize(void);
 void disabled(void);
 void competition_initialize(void);
 void opcontrol(void);
+void displayDebugging(void);
 #ifdef __cplusplus
 }
 #endif

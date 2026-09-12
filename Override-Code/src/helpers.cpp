@@ -1,11 +1,14 @@
 #include "robot.hpp"
+#include "position_control.hpp"
 
-void close_claw()
+bool isHolding = false;
+
+void release_grip()
 {
-    Fingers.extend();
+    position_control::move_relative_degrees_blocking(position_control::MotorId::Grip, 600, 12000, 600);
 }
 
-void open_claw()
+void hold_grip()
 {
-    Fingers.retract();
+    Grip.move_voltage(-6000);
 }

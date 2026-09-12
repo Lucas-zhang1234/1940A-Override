@@ -8,6 +8,7 @@
 #include "robot.hpp"
 #include "macros.hpp"
 #include "macro_manager.hpp"
+#include "helpers.hpp"
 #include "position_control.hpp"
 #include "lemlib/pid.hpp"
 #include "skills_auton.hpp"
@@ -60,11 +61,11 @@ void initialize() {
 
 	Arm.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 	Lift.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
-	Wrist.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
+	Grip.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
 
 	Arm.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 	Lift.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
-	Wrist.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
+	Grip.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 
 	
 
@@ -142,6 +143,12 @@ void autonomous()
 
 }
 
+void displayDebugging()
+{
+	pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", Arm.get_position());
+	pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift: %.2f deg", Lift.get_position());
+}
+
 /**
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -155,156 +162,79 @@ void autonomous()
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
+void moveIntake() {
+  if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+    // intake out
+    Intake.move_voltage(12000);
+  } else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+    // intake in
+    Intake.move_voltage(-12000);
+  } else {
+    Intake.brake();
+  }
+}
+
 void opcontrol() {
-	bool overrideWristLeveling = false;
-	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);  // Prints status of the emulated screen LCDs
+  bool overrideArmLeveling = false;
+  while (true) {
+    pros::lcd::print(0, "%d %d %d",
+                     (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
+                     (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
+                     (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >>
+                         0); // Prints status of the emulated screen LCDs
+	
+	displayDebugging();
 
-		// Arcade control scheme
-		int dir = Master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
-		int turn = Master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
-		Left_MG.move(dir + turn);                      // Sets left motor voltage
-		Right_MG.move(dir - turn);                     // Sets right motor voltage
+	// Arcade control scheme
+    int dir = Master.get_analog(
+        ANALOG_LEFT_Y); // Gets amount forward/backward from left joystick
+    int turn = Master.get_analog(
+        ANALOG_RIGHT_X);       // Gets the turn left/right from right joystick
+    Left_MG.move(dir + turn);  // Sets left motor voltage
+    Right_MG.move(dir - turn); // Sets right motor voltage
 
-		if (isMacroRunning())
-		{
-			overrideWristLeveling = true;
-			if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_X))
-			{
-				clearMacros();
-			}
-			continue;
-		}
-		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
-		{
-			// intake out
-			Intake.move_voltage(12000);
-		}
-		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
-		{
-			// intake in
-			Intake.move_voltage(-12000);
-		}
-		else
-		{
-			Intake.brake();
-		}
 
-		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-		{
-			Lift.move_voltage(13000);
-		}
-		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
-		{
-			Lift.move_voltage(-13000);
-		}
-		else
-		{
-			Lift.brake();
-		}
+    if (isMacroRunning()) {
+      if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
+        clearMacros();
+      }
+      continue;
+    }
 
-		const bool armCommandActive = Master.get_digital(pros::E_CONTROLLER_DIGITAL_B) ||
-		                             Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
-		if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_B))
-		{
-			
-			Arm.move_voltage(-12000);
-			Wrist.move_voltage(3500);
-			// if (Wrist.get_position() < -3.0)
-			// {
-			// 	Wrist.brake();
-			// }
-		}
-		else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && Arm.get_position() < 660.0)
-		{
-			Arm.move_voltage(12000);
-			Wrist.move_velocity(-55);
-		}
-		else
-		{
-			Arm.brake();
-			Wrist.brake();
-		}
+	hold_grip();
 
-		// const double armMotorDegrees = Arm.get_position();
-		// const double wristTargetDegrees = -armMotorDegrees * kWristTargetScale;
-		// const double wristError = wristTargetDegrees - Wrist.get_position();
-		// if (!armCommandActive) {
-		// 	WristPID.reset();
-		// }
-		// const double wristOutput = WristPID.update(wristError);
-		// const double clampedVoltage = std::clamp(wristOutput, -12000.0, 12000.0);
-		// if (!overrideWristLeveling) Wrist.move_voltage(static_cast<int32_t>(clampedVoltage));
+    moveIntake();
 
-		// pros::screen::print(pros::E_TEXT_MEDIUM, 0, "Arm: %.2f deg", armMotorDegrees);
-		// pros::screen::print(pros::E_TEXT_MEDIUM, 2, "Wrist Target: %.2f deg", wristTargetDegrees);
-		// pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Wrist: %.2f deg", Wrist.get_position());
-		// pros::screen::print(pros::E_TEXT_MEDIUM,4, "Wrist Error: %.2f deg", wristError);
-		// pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Wrist Output: %.2f mV", wristOutput);
-		// pros::screen::print(pros::E_TEXT_MEDIUM, 6, "Wrist Voltage: %.2f mV", clampedVoltage);
-		// pros::screen::print(pros::E_TEXT_MEDIUM, 1, "Lift: %.2f deg", Lift.get_position());
-
-		// if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-		// {
-		// 	Wrist.move_voltage(2000);
-		// 	overrideWristLeveling = true;
-		// } 
-		// else if (Partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
-		// {
-		// 	Wrist.move_voltage(-2000);
-		// 	overrideWristLeveling = true;
-		// }
-		// else if (overrideWristLeveling)
-		// {
-		// 	Wrist.brake();
-		// }
-
-		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)
-			|| Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
-		{
-			// macro to move intake back far enough, grab the pin with the claw, and rotate it upright
-			tryAddMacroToQueue(Macro::GRAB_PIN);
-		}
-
-		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
-		{
-			// macro to move intake back far enough, grab the pin with the claw, and rotate it upright
-			tryAddMacroToQueue(Macro::SCORE_POSITION);
-		}
-
-		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)
-			|| Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT))
-		{
-			tryAddMacroToQueue(Macro::TWO_PIN);
-		}
-
-		if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)
-			|| Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT))
-		{
-			tryAddMacroToQueue(Macro::ONE_PIN);
-		}
-
-		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1))
-		{
-			Fingers.extend();
-		}
-		else if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2))
-		{
-			Fingers.retract();
-		}
-
-		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
-		{
-			overrideWristLeveling = true;
-		}
-
-		if (Partner.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
-		{
-			tryAddMacroToQueue(Macro::MATCHLOADER);
-		}
-
-		pros::delay(20);                               // Run for 20 ms then update
+	if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
+		Lift.move_voltage(12000);
+	} else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+		Lift.move_voltage(-12000);
+	} else {
+		Lift.brake();
 	}
+
+	if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+		Arm.move_voltage(12000);
+	} else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+		Arm.move_voltage(-12000);
+	} else {
+		Arm.brake();
+	}
+
+    if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
+      tryAddMacroToQueue(Macro::SCORE_POSITION);
+    }
+
+    if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+      // macro to move intake back far enough, grab the pin with the claw, and
+      // rotate it upright
+      tryAddMacroToQueue(Macro::SCORE_POSITION);
+    }
+
+    if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+    	tryAddMacroToQueue(Macro::INTAKE_POSITION);
+    }
+
+    pros::delay(20); // Run for 20 ms then update
+  }
 }

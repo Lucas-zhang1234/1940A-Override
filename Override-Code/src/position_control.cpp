@@ -12,7 +12,7 @@ namespace position_control {
 namespace {
 
 constexpr std::uint32_t LoopPeriodMs = 20;
-constexpr double PositionTolerance = 2.0;
+constexpr double PositionTolerance = 4.0;
 constexpr double Kp = 160.0;
 constexpr double Ki = 25.5;
 constexpr double Kd = 10.0;
@@ -45,8 +45,8 @@ struct CommandResult {
 
 std::array<MotorState, 3> states{{
     {&Lift, 200.0},
-    {&Arm, 600.0},
-    {&Wrist, 600.0}
+    {&Arm, 200.0},
+    {&Grip, 200.0}
 }};
 
 std::array<CommandResult, 32> command_results{};

@@ -1,10 +1,7 @@
 enum class Macro {
     NONE,
-    GRAB_PIN,
+    INTAKE_POSITION,
     SCORE_POSITION,
-    ONE_PIN,
-    TWO_PIN,
-    MATCHLOADER
 };
 
 bool isMacroRunning();

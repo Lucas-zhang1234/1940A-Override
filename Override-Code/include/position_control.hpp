@@ -8,7 +8,7 @@ namespace position_control {
 enum class MotorId : std::uint8_t {
     Lift,
     Arm,
-    Wrist
+    Grip
 };
 
 enum class Status : std::uint8_t {
