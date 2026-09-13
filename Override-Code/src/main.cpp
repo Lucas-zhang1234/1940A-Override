@@ -48,9 +48,7 @@ void on_center_button() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	IMU.reset(true);
 	chassis.calibrate();
-	pros::delay(2000);
 
 	chassis.setPose(0, 0, 0);
 
