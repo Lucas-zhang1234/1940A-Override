@@ -37,7 +37,7 @@ lemlib::TrackingWheel Left_Horizontal_TW(&Left_Horizontal_Rot, lemlib::Omniwheel
 lemlib::OdomSensors Sensors(&Vertical_TW, // vertical tracking wheel 1
                             nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
                             &Right_Horizontal_TW, // horizontal tracking wheel 1, right
-                            &Left_Horizontal_TW, // horizontal tracking wheel 2, left
+                            nullptr, // horizontal tracking wheel 2, left
                             &IMU // inertial sensor
 );
 
@@ -56,9 +56,9 @@ lemlib::ControllerSettings Lateral_Controller(1.5472, // proportional gain (kP)
 );
 
 // angular PID controller
-lemlib::ControllerSettings Angular_Controller(0.4, // proportional gain (kP)
+lemlib::ControllerSettings Angular_Controller(1.38, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              0.3, // derivative gain (kD)
+                                              9.96, // derivative gain (kD)
                                               0, // anti windup
                                               0, // small error range, in degrees (1)
                                               0, // small error range timeout, in milliseconds (100)
