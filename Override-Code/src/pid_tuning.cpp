@@ -24,3 +24,14 @@ void outputThetaTask(void* param)
         i++;
     }
 }
+
+void outputPosTask(void* param)
+{
+    int i = 0;
+    while (true)
+    {
+        pros::screen::print(pros::E_TEXT_SMALL, i, "Time: %d ms, Position: (%.2f, %.2f)\n", i * 100, chassis.getPose().x, chassis.getPose().y);
+        pros::delay(100);
+        i++;
+    }
+}

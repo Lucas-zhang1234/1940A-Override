@@ -142,7 +142,7 @@ void autonomous()
 	// turn();
 
 	// chassis.moveToPoint(-5, firstY, 3000, {.forwards=false, .minSpeed=30});
-	pros::Task outputTheta(outputThetaTask, nullptr, "Output Theta Task");
+	pros::Task outputPos(outputPosTask, nullptr, "Output Position Task");
 	turn();
 
 }
