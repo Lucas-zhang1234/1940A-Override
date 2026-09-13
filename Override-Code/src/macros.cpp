@@ -13,8 +13,14 @@ void intake_position_macro()
 {
     release_grip();
 
-    position_control::move_relative_degrees_blocking(position_control::MotorId::Lift, 500, 600, 600);
+    if (Lift.get_position() > 0)
+    {
+        position_control::move_relative_degrees(position_control::MotorId::Lift, 500, 600, 800);
+    }
+    else {
+        position_control::move_relative_degrees(position_control::MotorId::Lift, -500, 600, 800);
+    }
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -610, 600, 800);
-    position_control::move_absolute_blocking(position_control::MotorId::Lift, 0, 12000, 1500);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 0, 600, 800);
+    position_control::move_absolute_blocking(position_control::MotorId::Lift, 0, 12000, 1900);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -4, 600, 800);
 }
