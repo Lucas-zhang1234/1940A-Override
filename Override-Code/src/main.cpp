@@ -12,6 +12,7 @@
 #include "position_control.hpp"
 #include "lemlib/pid.hpp"
 #include "skills_auton.hpp"
+#include "match_autons.hpp"
 #include <algorithm>
 #include "pid_tuning.hpp"
 #include <chrono>
@@ -69,7 +70,9 @@ void initialize() {
 	Lift.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 	Grip.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 
-	
+	Arm.set_zero_position(0);
+	Lift.set_zero_position(0);
+	Grip.set_zero_position(0);
 
 	position_control::start();
 	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");
@@ -143,8 +146,8 @@ void autonomous()
 
 	// chassis.moveToPoint(-5, firstY, 3000, {.forwards=false, .minSpeed=30});
 	pros::Task outputPos(outputPosTask, nullptr, "Output Position Task");
-	turn();
-
+	pros::Task holdGripTask(hold_grip_task, nullptr, "Hold Grip Task");
+	Q1_R_T4P();
 }
 
 void displayDebugging()
@@ -155,6 +158,7 @@ void displayDebugging()
 		IMU.get_heading(), chassis.getPose().theta);
 	pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Right Horizontal: %.2f deg", Right_Horizontal_TW.getDistanceTraveled());
 	pros::screen::print(pros::E_TEXT_MEDIUM, 4, "Left Horizontal: %.2f deg", Left_Horizontal_TW.getDistanceTraveled());
+	pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Vertical: %.2f deg", Vertical_TW.getDistanceTraveled());
 }
 
 /**
@@ -209,29 +213,30 @@ void opcontrol() {
       continue;
     }
 
-	hold_grip();
-
     moveIntake();
 
-	if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
-		Lift.move_voltage(12000);
-	} else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+	if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && Lift.get_position() > 0) {
 		Lift.move_voltage(-12000);
+	} else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+		Lift.move_voltage(12000);
 	} else {
 		Lift.brake();
 	}
 
-	if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+	if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT)) {
 		Arm.move_voltage(12000);
-	} else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+	} else if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
 		Arm.move_voltage(-12000);
 	} else {
 		Arm.brake();
 	}
 
-    if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
-      tryAddMacroToQueue(Macro::SCORE_POSITION);
+    if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_A)) {
+		Grip.move(6000);
     }
+	else {
+		Grip.move(-6000);
+	}
 
     if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
       // macro to move intake back far enough, grab the pin with the claw, and
