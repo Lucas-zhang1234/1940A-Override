@@ -3,10 +3,13 @@
 
 bool isHolding = true;
 
-void release_grip()
+void release_grip(void* param)
 {
+    int ms = (int)(intptr_t)param;
+    
     isHolding = false;
-    position_control::move_relative_degrees_blocking(position_control::MotorId::Grip, 600, 12000, 600);
+    Grip.move_voltage(12000);
+    pros::delay(ms);
     isHolding = true;
 }
 

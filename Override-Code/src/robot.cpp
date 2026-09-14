@@ -60,10 +60,10 @@ lemlib::ControllerSettings Angular_Controller(1.8, // proportional gain (kP)
                                               0, // integral gain (kI) 0.9
                                               10.6, // derivative gain (kD)
                                               0, // anti windup 8
-                                              0, // small error range, in degrees (1)
-                                              0, // small error range timeout, in milliseconds (100)
-                                              0, // large error range, in degrees (3)
-                                              0, // large error range timeout, in milliseconds (200)
+                                              0.3, // small error range, in degrees (1)
+                                              100, // small error range timeout, in milliseconds (100)
+                                              1, // large error range, in degrees (3)
+                                              200, // large error range timeout, in milliseconds (200)
                                               0 // maximum acceleration (slew) (20)
 );
 
