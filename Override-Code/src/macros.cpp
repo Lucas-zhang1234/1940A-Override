@@ -15,9 +15,8 @@ void intake_position_macro()
     position_control::move_relative_degrees(position_control::MotorId::Lift, 500, 600, 1300);
     pros::delay(250);
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -610, 600, 800);
-    position_control::move_absolute_degrees(position_control::MotorId::Lift, 250, 12000, 2100);
-    pros::delay(200);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -4, 600, 800);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 240, 12000, 2100);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -5, 600, 800);
 }
 
 void fast_intake_position_macro()
