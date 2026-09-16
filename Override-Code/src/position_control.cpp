@@ -28,7 +28,7 @@ struct Command {
 };
 
 struct MotorState {
-    pros::Motor* motor;
+    pros::AbstractMotor* motor;
     double motor_max_rpm;
     std::deque<Command> queue;
     Command active{};
