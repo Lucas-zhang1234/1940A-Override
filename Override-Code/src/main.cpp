@@ -248,6 +248,11 @@ void opcontrol() {
     	tryAddMacroToQueue(Macro::INTAKE_POSITION);
     }
 
+	if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y))
+	{
+		tryAddMacroToQueue(Macro::PICK_UP_PIN);
+	}
+
     pros::delay(20); // Run for 20 ms then update
   }
 }

@@ -12,10 +12,10 @@ void score_position_macro()
 void intake_position_macro()
 {
     pros::Task release_task(release_grip, (void*)(intptr_t)1000, "Release Grip Task");
-    position_control::move_relative_degrees(position_control::MotorId::Lift, 500, 600, 1300);
+    position_control::move_relative_degrees(position_control::MotorId::Lift, 300, 600, 1300);
     pros::delay(250);
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -610, 600, 800);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 240, 12000, 2100);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 210, 12000, 2000);
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -5, 600, 800);
 }
 
@@ -23,14 +23,13 @@ void fast_intake_position_macro()
 {
     pros::Task release_task(release_grip, (void*)(intptr_t)400, "Release Grip Task");
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -610, 600, 800);
-    position_control::move_absolute_blocking(position_control::MotorId::Lift, 80, 12000, 2100);
+    position_control::move_absolute_degrees(position_control::MotorId::Lift, 210, 12000, 1500);
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -4, 600, 800);
 }
 
 void pick_up_pin_macro()
 {
-    position_control::move_absolute_degrees(position_control::MotorId::Lift, 0, 600, 1500);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -50, 600, 1500);
-    position_control::move_absolute_degrees(position_control::MotorId::Lift, 200, 600, 1500);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -250, 600, 1500);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 0, 600, 600);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 0, 600, 450);
+    position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -250, 12000, 500);
 }
