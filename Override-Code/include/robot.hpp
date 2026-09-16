@@ -46,7 +46,7 @@ extern lemlib::Chassis chassis;
 extern pros::Motor Intake; // check motor gears, neg. or pos. asw
 extern pros::Motor Grip; // neg. or pos.
 extern pros::Motor Arm; // neg. or pos.
-extern pros::Motor Lift; // neg. or pos.
+extern pros::MotorGroup Lift; // neg. or pos.
 
 #pragma endregion
 

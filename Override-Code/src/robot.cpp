@@ -3,6 +3,7 @@
 #include "pros/abstract_motor.hpp"
 #include "pros/adi.hpp"
 #include "pros/distance.hpp"
+#include "pros/motor_group.hpp"
 #include "pros/motors.hpp"
 #include "pros/optical.hpp"
 #include <cstddef>
@@ -81,7 +82,7 @@ lemlib::Chassis chassis(Drivetrain, // drivetrain settings
 pros::Motor Intake(4, pros::v5::MotorGears::green); // check motor gears, neg. or pos. asw
 pros::Motor Grip(2, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
 pros::Motor Arm(3, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
-pros::Motor Lift(10, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::degrees); // neg. or pos.
+pros::MotorGroup Lift({10, -5}, pros::v5::MotorGears::green, pros::v5::MotorEncoderUnits::degrees);
 
 #pragma endregion
 
