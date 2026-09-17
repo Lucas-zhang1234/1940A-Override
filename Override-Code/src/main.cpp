@@ -147,7 +147,7 @@ void autonomous()
 	// chassis.moveToPoint(-5, firstY, 3000, {.forwards=false, .minSpeed=30});
 	pros::Task outputPos(outputPosTask, nullptr, "Output Position Task");
 	pros::Task holdGripTask(hold_grip_task, nullptr, "Hold Grip Task");
-	Q1_R_T4P();
+	Q2_R_1G1P();
 	// position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -250, 12000, 1000);
 	// position_control::move_relative_degrees_blocking(position_control::MotorId::Lift, 700, 12000, 1000);
 }
