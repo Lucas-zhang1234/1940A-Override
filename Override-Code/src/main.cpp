@@ -58,6 +58,8 @@ void initialize() {
 
 	pros::lcd::register_btn1_cb(on_center_button);
 
+	pros::screen::print(pros::E_TEXT_MEDIUM, 1, "init runnign");
+
 	// Since the front motors of each side are green:
     Left_MG.set_gearing(pros::MotorGearset::green, 0);
     Right_MG.set_gearing(pros::MotorGearset::green, 0);
@@ -70,12 +72,23 @@ void initialize() {
 	Lift.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 	Grip.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_DEGREES);
 
-	Arm.set_zero_position(0);
+	Arm.set_zero_position(-570);
 	Lift.set_zero_position(0);
 	Grip.set_zero_position(0);
-
 	position_control::start();
+	pros::delay(1000);
+	Arm.move_absolute(-250, 12000);
+	Grip.move_voltage(-2000);
+	Lift.move_absolute(200, 12000);
+	pros::delay(5000);
+	position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 0, 12000, 1000);
+	position_control::move_absolute_degrees(position_control::MotorId::Lift, 0, 12000, 1000);
+	Grip.brake();
+	pros::delay(1000);
+
+	
 	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");
+	pros::screen::print(pros::E_TEXT_MEDIUM, 1, "init done");
 }
 
 /**
@@ -94,7 +107,9 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize()
+{
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -147,7 +162,7 @@ void autonomous()
 	// chassis.moveToPoint(-5, firstY, 3000, {.forwards=false, .minSpeed=30});
 	pros::Task outputPos(outputPosTask, nullptr, "Output Position Task");
 	pros::Task holdGripTask(hold_grip_task, nullptr, "Hold Grip Task");
-	Q2_R_1G1P();
+	skills();
 	// position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -250, 12000, 1000);
 	// position_control::move_relative_degrees_blocking(position_control::MotorId::Lift, 700, 12000, 1000);
 }
@@ -198,6 +213,7 @@ void moveIntake() {
 }
 
 void opcontrol() {
+	// *(volatile char*)0 = 0;
   bool overrideArmLeveling = false;
   while (true) {
     pros::lcd::print(0, "%d %d %d",
