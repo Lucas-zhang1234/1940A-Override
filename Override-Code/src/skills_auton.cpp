@@ -47,6 +47,8 @@ void skills()
     chassis.waitUntilDone();
     chassis.moveToPoint(-51.8, -24.9, 1100, {.forwards=false});
     chassis.waitUntilDone();
+    // position_control::move_absolute_degrees(position_control::MotorId::Lift, -33, 12000, 1500);
+    // tryAddMacroToQueue(Macro::INTAKE_POSITION);
     pros::Task release_task_2(release_grip, (void*)(intptr_t)400, "Release Grip Task");
     position_control::move_absolute_degrees(position_control::MotorId::Lift, 600, 12000, 1500);
 
@@ -78,7 +80,8 @@ void skills()
 
     for (int i = 0; i < 2; i++)
     {
-        chassis.moveToPoint(-73 - i * 4, -54.5, 1300);
+        // chassis.moveToPoint(-73 - i * 4, -54.5, 1300);
+        chassis.moveToPoint(-73 - 1 * 4, -54.5,1300);
         chassis.waitUntilDone();
         Intake.move_voltage(-12000);
         pros::delay(2400);
@@ -108,7 +111,7 @@ void skills()
         // maybe use distance sensors
     }
 
-    chassis.moveToPoint(-79, -52, 1000);
+    chassis.moveToPoint(-73, -54,1000);
     chassis.waitUntilDone();
     Intake.move_voltage(-12000);
 
@@ -128,7 +131,12 @@ void skills()
     position_control::move_absolute_degrees(position_control::MotorId::Arm, -260, 12000, 1000);
     position_control::move_absolute_degrees(position_control::MotorId::Lift, 480, 12000, 1000);
     chassis.waitUntilDone();
-    pros::Task release_slow_task(release_grip_slow, (void*)(intptr_t)900, "Release Grip Slow Task");
+    position_control::move_absolute_degrees(position_control::MotorId::Lift, 100, 12000, 1000);
+    pros::delay(100);
+    tryAddMacroToQueue(Macro::INTAKE_POSITION2);
+    // pros::Task release_slow_task(release_grip_slow, (void*)(intptr_t)900, "Release Grip Slow Task");
+    
     pros::delay(500);
-    position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 700, 12000, 1000);
-}
+    //position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 700, 12000, 1000);
+
+ }
