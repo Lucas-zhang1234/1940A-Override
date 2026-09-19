@@ -4,6 +4,7 @@ enum class Macro {
     FAST_INTAKE_POSITION,
     SCORE_POSITION,
     PICK_UP_PIN,
+    SCORE_ONE_PIN
 };
 
 bool isMacroRunning();

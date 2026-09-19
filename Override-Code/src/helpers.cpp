@@ -13,6 +13,16 @@ void release_grip(void* param)
     isHolding = true;
 }
 
+void release_grip_slow(void* param)
+{
+    int ms = (int)(intptr_t)param;
+    
+    isHolding = false;
+    Grip.move_voltage(2500);
+    pros::delay(ms);
+    isHolding = true;
+}
+
 void hold_grip()
 {
     isHolding = true;

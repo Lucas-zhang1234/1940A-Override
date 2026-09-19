@@ -8,6 +8,7 @@ enum class Macro {
     FAST_INTAKE_POSITION,
     SCORE_POSITION,
     PICK_UP_PIN,
+    SCORE_ONE_PIN
 };
 
 std::queue<Macro> macroQueue;
@@ -66,6 +67,13 @@ void macroTask(void* param) {
                 case Macro::PICK_UP_PIN:
                     macroRunning = true;
                     pick_up_pin_macro();
+                    macroRunning = false;
+                    macroQueue.pop();
+                    break;
+
+                case Macro::SCORE_ONE_PIN:
+                    macroRunning = true;
+                    score_one_pin_macro();
                     macroRunning = false;
                     macroQueue.pop();
                     break;

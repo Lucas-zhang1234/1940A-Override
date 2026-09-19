@@ -30,7 +30,7 @@ void outputPosTask(void* param)
     int i = 0;
     while (true)
     {
-        pros::screen::print(pros::E_TEXT_SMALL, i, "%d ms, H: (%.2f), xy: (%.2f, %.2f)\n", i * 200, chassis.getPose().theta, chassis.getPose().x, chassis.getPose().y);
+        displayDebugging();
         pros::delay(200);
     }
 }

@@ -89,6 +89,8 @@ void initialize() {
 	
 	pros::Task macroManagerTask(macroTask, nullptr, "Macro Manager Task");
 	pros::screen::print(pros::E_TEXT_MEDIUM, 1, "init done");
+	pros::Task outputPos(outputPosTask, nullptr, "Output Position Task");
+	pros::Task holdGripTask(hold_grip_task, nullptr, "Hold Grip Task");
 }
 
 /**
@@ -160,8 +162,6 @@ void autonomous()
 	// turn();
 
 	// chassis.moveToPoint(-5, firstY, 3000, {.forwards=false, .minSpeed=30});
-	pros::Task outputPos(outputPosTask, nullptr, "Output Position Task");
-	pros::Task holdGripTask(hold_grip_task, nullptr, "Hold Grip Task");
 	skills();
 	// position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, -250, 12000, 1000);
 	// position_control::move_relative_degrees_blocking(position_control::MotorId::Lift, 700, 12000, 1000);
@@ -174,7 +174,14 @@ void displayDebugging()
     pros::screen::print(pros::E_TEXT_MEDIUM, 2, "IMU heading: %.2f | LemLib theta: %.2f\n", 
 		IMU.get_heading(), chassis.getPose().theta);
 	pros::screen::print(pros::E_TEXT_MEDIUM, 3, "Right Horizontal: %.2f deg", Right_Horizontal_TW.getDistanceTraveled());
-	pros::screen::print(pros::E_TEXT_MEDIUM, 4, "Left Horizontal: %.2f deg", Left_Horizontal_TW.getDistanceTraveled());
+	float leftHorizontal = Left_Horizontal_TW.getDistanceTraveled();
+
+	pros::screen::print(
+		pros::E_TEXT_MEDIUM,
+		4,
+		"Left Horizontal: %.2f",
+		leftHorizontal
+	);
 	pros::screen::print(pros::E_TEXT_MEDIUM, 5, "Vertical: %.2f deg", Vertical_TW.getDistanceTraveled());
 	
 	auto left_temps = Left_MG.get_temperature_all();
@@ -213,8 +220,8 @@ void moveIntake() {
 }
 
 void opcontrol() {
-	// *(volatile char*)0 = 0;
-  bool overrideArmLeveling = false;
+
+ 	 bool overrideArmLeveling = false;
   while (true) {
     pros::lcd::print(0, "%d %d %d",
                      (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
@@ -222,7 +229,7 @@ void opcontrol() {
                      (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >>
                          0); // Prints status of the emulated screen LCDs
 	
-	displayDebugging();
+	
 
 	// Arcade control scheme
     int dir = Master.get_analog(
@@ -258,11 +265,9 @@ void opcontrol() {
 		Arm.brake();
 	}
 
-    if (Master.get_digital(pros::E_CONTROLLER_DIGITAL_A)) {
-		Grip.move(6000);
-    }
-	else {
-		Grip.move(-6000);
+    if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
+		tryAddMacroToQueue(Macro::SCORE_ONE_PIN);
+		tryAddMacroToQueue(Macro::INTAKE_POSITION);
 	}
 
     if (Master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
