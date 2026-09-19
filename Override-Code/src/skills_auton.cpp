@@ -57,7 +57,7 @@ void skills()
     chassis.waitUntilDone();
     chassis.turnToHeading(33, 1000, {}, false);
 
-    chassis.moveToPoint(-50, -49, 1000, {.forwards=false});
+    chassis.moveToPoint(-49, -48, 1000, {.forwards=false});
     chassis.waitUntilDone();
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Lift, 0, 12000, 750);
     position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 0, 600, 300);
@@ -65,7 +65,7 @@ void skills()
     position_control::move_absolute_degrees(position_control::MotorId::Lift, 750, 12000, 1400);
     chassis.turnToHeading(160, 1000);
     chassis.waitUntilDone();
-    chassis.moveToPoint(-51.3, -25.2, 1000, {.forwards=false, .minSpeed=20, .earlyExitRange=1});
+    chassis.moveToPoint(-51.3, -24.6, 1000, {.forwards=false, .minSpeed=20, .earlyExitRange=1});
     chassis.waitUntilDone();
     pros::Task release_task_3(release_grip, (void*)(intptr_t)400, "Release Grip Task");
     pros::delay(220);
@@ -81,21 +81,21 @@ void skills()
     for (int i = 0; i < 2; i++)
     {
         // chassis.moveToPoint(-73 - i * 4, -54.5, 1300);
-        chassis.moveToPoint(-73 - 1 * 4, -54.5,1300);
+        chassis.moveToPoint(-73 - 1 * 4, -53, 1300);
         chassis.waitUntilDone();
         Intake.move_voltage(-12000);
         pros::delay(2400);
         for (int j = 0; j < 1; j++)
         {
-            chassis.moveToPoint(-51, -53.2, 1000, {.forwards=false, .minSpeed=60});
-            chassis.moveToPoint(-66, -53.2, 1000,{.minSpeed=60});
+            chassis.moveToPoint(-51, -53.2, 1000, {.forwards=false, .minSpeed=40});
+            chassis.moveToPoint(-66, -53.2, 1000,{.minSpeed=40});
         }
-        chassis.moveToPoint(-53, -49, 1000, {.forwards=false});
+        chassis.moveToPoint(-53 - i * 3, -49, 1000, {.forwards=false});
         position_control::move_absolute_degrees_blocking(position_control::MotorId::Arm, 0, 12000, 600);
         position_control::move_absolute_degrees(position_control::MotorId::Arm, -250, 12000, 1000);
         position_control::move_absolute_degrees(position_control::MotorId::Lift, 1150 + 300 * i, 12000, 1800);
         chassis.turnToHeading(180, 1000);
-        chassis.moveToPoint(-63 - i * 3, -15.5,  1500, {.forwards=false});
+        chassis.moveToPoint(-63 - i * 6, -15.5,  1500, {.forwards=false});
 
         chassis.waitUntilDone();
         pros::Task release_task_4(release_grip, (void*)(intptr_t)400, "Release Grip Task");
@@ -111,7 +111,9 @@ void skills()
         // maybe use distance sensors
     }
 
-    chassis.moveToPoint(-73, -54,1000);
+    double change = -7;
+
+    chassis.moveToPoint(-73 + change, -54,1000);
     chassis.waitUntilDone();
     Intake.move_voltage(-12000);
 
@@ -119,11 +121,11 @@ void skills()
 
     for (int j = 0; j < 1; j++)
     {
-        chassis.moveToPoint(-50, -47, 1000, {.forwards=false, .minSpeed=60});
-        chassis.moveToPoint(-68, -47, 1000,{.minSpeed=60});
+        chassis.moveToPoint(-50 + change, -47, 1000, {.forwards=false, .minSpeed=40});
+        chassis.moveToPoint(-68 + change, -47, 1000,{.minSpeed=40});
     }
 
-    chassis.moveToPoint(-65, -44, 1000, {.forwards=false, .minSpeed=30});
+    chassis.moveToPoint(-65 + change, -44, 1000, {.forwards=false, .minSpeed=30});
 
     chassis.turnToHeading(225, 1000);
     chassis.waitUntilDone();
